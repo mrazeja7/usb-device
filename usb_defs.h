@@ -28,6 +28,30 @@ typedef struct
   __IO uint32_t DIEPTXF[0x0F];        /*!< dev Periodic Transmit FIFO                        */
 } USB_OTG_GlobalTypeDef;
 
+typedef struct 
+{
+  __IO uint32_t DCFG;            /*!< dev Configuration Register   800h */
+  __IO uint32_t DCTL;            /*!< dev Control Register         804h */
+  __IO uint32_t DSTS;            /*!< dev Status Register (RO)     808h */
+  uint32_t Reserved0C;           /*!< Reserved                     80Ch */
+  __IO uint32_t DIEPMSK;         /*!< dev IN Endpoint Mask         810h */
+  __IO uint32_t DOEPMSK;         /*!< dev OUT Endpoint Mask        814h */
+  __IO uint32_t DAINT;           /*!< dev All Endpoints Itr Reg    818h */
+  __IO uint32_t DAINTMSK;        /*!< dev All Endpoints Itr Mask   81Ch */
+  uint32_t  Reserved20;          /*!< Reserved                     820h */
+  uint32_t Reserved9;            /*!< Reserved                     824h */
+  __IO uint32_t DVBUSDIS;        /*!< dev VBUS discharge Register  828h */
+  __IO uint32_t DVBUSPULSE;      /*!< dev VBUS Pulse Register      82Ch */
+  __IO uint32_t DTHRCTL;         /*!< dev threshold                830h */
+  __IO uint32_t DIEPEMPMSK;      /*!< dev empty msk                834h */
+  __IO uint32_t DEACHINT;        /*!< dedicated EP interrupt       838h */
+  __IO uint32_t DEACHMSK;        /*!< dedicated EP msk             83Ch */
+  uint32_t Reserved40;           /*!< dedicated EP mask            840h */
+  __IO uint32_t DINEP1MSK;       /*!< dedicated EP mask            844h */
+  uint32_t  Reserved44[15];      /*!< Reserved                 844-87Ch */
+  __IO uint32_t DOUTEP1MSK;      /*!< dedicated EP msk             884h */
+} USB_OTG_DeviceTypeDef;
+
 #define USB_OTG_FS          ((USB_OTG_GlobalTypeDef *) USB_OTG_FS_PERIPH_BASE)
 
 /********************  Bit definition for USB_OTG_GAHBCFG register  ********************/
@@ -275,5 +299,70 @@ typedef struct
 #define USB_OTG_GINTMSK_WUIM_Pos                 (31U)                         
 #define USB_OTG_GINTMSK_WUIM_Msk                 (0x1U << USB_OTG_GINTMSK_WUIM_Pos) /*!< 0x80000000 */
 #define USB_OTG_GINTMSK_WUIM                     USB_OTG_GINTMSK_WUIM_Msk      /*!< Resume/remote wakeup detected interrupt mask        */
+
+/********************  Bit definition for USB_OTG_GCCFG register  ********************/
+#define USB_OTG_GCCFG_PWRDWN_Pos                 (16U)                         
+#define USB_OTG_GCCFG_PWRDWN_Msk                 (0x1U << USB_OTG_GCCFG_PWRDWN_Pos) /*!< 0x00010000 */
+#define USB_OTG_GCCFG_PWRDWN                     USB_OTG_GCCFG_PWRDWN_Msk      /*!< Power down */
+#define USB_OTG_GCCFG_I2CPADEN_Pos               (17U)                         
+#define USB_OTG_GCCFG_I2CPADEN_Msk               (0x1U << USB_OTG_GCCFG_I2CPADEN_Pos) /*!< 0x00020000 */
+#define USB_OTG_GCCFG_I2CPADEN                   USB_OTG_GCCFG_I2CPADEN_Msk    /*!< Enable I2C bus connection for the external I2C PHY interface*/ 
+#define USB_OTG_GCCFG_VBUSASEN_Pos               (18U)                         
+#define USB_OTG_GCCFG_VBUSASEN_Msk               (0x1U << USB_OTG_GCCFG_VBUSASEN_Pos) /*!< 0x00040000 */
+#define USB_OTG_GCCFG_VBUSASEN                   USB_OTG_GCCFG_VBUSASEN_Msk    /*!< Enable the VBUS sensing device */
+#define USB_OTG_GCCFG_VBUSBSEN_Pos               (19U)                         
+#define USB_OTG_GCCFG_VBUSBSEN_Msk               (0x1U << USB_OTG_GCCFG_VBUSBSEN_Pos) /*!< 0x00080000 */
+#define USB_OTG_GCCFG_VBUSBSEN                   USB_OTG_GCCFG_VBUSBSEN_Msk    /*!< Enable the VBUS sensing device */
+#define USB_OTG_GCCFG_SOFOUTEN_Pos               (20U)                         
+#define USB_OTG_GCCFG_SOFOUTEN_Msk               (0x1U << USB_OTG_GCCFG_SOFOUTEN_Pos) /*!< 0x00100000 */
+#define USB_OTG_GCCFG_SOFOUTEN                   USB_OTG_GCCFG_SOFOUTEN_Msk    /*!< SOF output enable */
+#define USB_OTG_GCCFG_NOVBUSSENS_Pos             (21U)                         
+#define USB_OTG_GCCFG_NOVBUSSENS_Msk             (0x1U << USB_OTG_GCCFG_NOVBUSSENS_Pos) /*!< 0x00200000 */
+#define USB_OTG_GCCFG_NOVBUSSENS                 USB_OTG_GCCFG_NOVBUSSENS_Msk  /*!< VBUS sensing disable option*/ 
+
+/********************  Bit definition for USB_OTG_DCFG register  ********************/
+
+#define USB_OTG_DCFG_DSPD_Pos                    (0U)                          
+#define USB_OTG_DCFG_DSPD_Msk                    (0x3U << USB_OTG_DCFG_DSPD_Pos) /*!< 0x00000003 */
+#define USB_OTG_DCFG_DSPD                        USB_OTG_DCFG_DSPD_Msk         /*!< Device speed */
+#define USB_OTG_DCFG_DSPD_0                      (0x1U << USB_OTG_DCFG_DSPD_Pos) /*!< 0x00000001 */
+#define USB_OTG_DCFG_DSPD_1                      (0x2U << USB_OTG_DCFG_DSPD_Pos) /*!< 0x00000002 */
+#define USB_OTG_DCFG_NZLSOHSK_Pos                (2U)                          
+#define USB_OTG_DCFG_NZLSOHSK_Msk                (0x1U << USB_OTG_DCFG_NZLSOHSK_Pos) /*!< 0x00000004 */
+#define USB_OTG_DCFG_NZLSOHSK                    USB_OTG_DCFG_NZLSOHSK_Msk     /*!< Nonzero-length status OUT handshake */
+
+#define USB_OTG_DCFG_DAD_Pos                     (4U)                          
+#define USB_OTG_DCFG_DAD_Msk                     (0x7FU << USB_OTG_DCFG_DAD_Pos) /*!< 0x000007F0 */
+#define USB_OTG_DCFG_DAD                         USB_OTG_DCFG_DAD_Msk          /*!< Device address */
+#define USB_OTG_DCFG_DAD_0                       (0x01U << USB_OTG_DCFG_DAD_Pos) /*!< 0x00000010 */
+#define USB_OTG_DCFG_DAD_1                       (0x02U << USB_OTG_DCFG_DAD_Pos) /*!< 0x00000020 */
+#define USB_OTG_DCFG_DAD_2                       (0x04U << USB_OTG_DCFG_DAD_Pos) /*!< 0x00000040 */
+#define USB_OTG_DCFG_DAD_3                       (0x08U << USB_OTG_DCFG_DAD_Pos) /*!< 0x00000080 */
+#define USB_OTG_DCFG_DAD_4                       (0x10U << USB_OTG_DCFG_DAD_Pos) /*!< 0x00000100 */
+#define USB_OTG_DCFG_DAD_5                       (0x20U << USB_OTG_DCFG_DAD_Pos) /*!< 0x00000200 */
+#define USB_OTG_DCFG_DAD_6                       (0x40U << USB_OTG_DCFG_DAD_Pos) /*!< 0x00000400 */
+
+#define USB_OTG_DCFG_PFIVL_Pos                   (11U)                         
+#define USB_OTG_DCFG_PFIVL_Msk                   (0x3U << USB_OTG_DCFG_PFIVL_Pos) /*!< 0x00001800 */
+#define USB_OTG_DCFG_PFIVL                       USB_OTG_DCFG_PFIVL_Msk        /*!< Periodic (micro)frame interval */
+#define USB_OTG_DCFG_PFIVL_0                     (0x1U << USB_OTG_DCFG_PFIVL_Pos) /*!< 0x00000800 */
+#define USB_OTG_DCFG_PFIVL_1                     (0x2U << USB_OTG_DCFG_PFIVL_Pos) /*!< 0x00001000 */
+
+#define USB_OTG_DCFG_PERSCHIVL_Pos               (24U)                         
+#define USB_OTG_DCFG_PERSCHIVL_Msk               (0x3U << USB_OTG_DCFG_PERSCHIVL_Pos) /*!< 0x03000000 */
+#define USB_OTG_DCFG_PERSCHIVL                   USB_OTG_DCFG_PERSCHIVL_Msk    /*!< Periodic scheduling interval */
+#define USB_OTG_DCFG_PERSCHIVL_0                 (0x1U << USB_OTG_DCFG_PERSCHIVL_Pos) /*!< 0x01000000 */
+#define USB_OTG_DCFG_PERSCHIVL_1                 (0x2U << USB_OTG_DCFG_PERSCHIVL_Pos) /*!< 0x02000000 */
+
+/********************  Bit definition for USB_OTG_PCGCR register  ********************/
+#define USB_OTG_PCGCR_STPPCLK_Pos                (0U)                          
+#define USB_OTG_PCGCR_STPPCLK_Msk                (0x1U << USB_OTG_PCGCR_STPPCLK_Pos) /*!< 0x00000001 */
+#define USB_OTG_PCGCR_STPPCLK                    USB_OTG_PCGCR_STPPCLK_Msk     /*!< Stop PHY clock */
+#define USB_OTG_PCGCR_GATEHCLK_Pos               (1U)                          
+#define USB_OTG_PCGCR_GATEHCLK_Msk               (0x1U << USB_OTG_PCGCR_GATEHCLK_Pos) /*!< 0x00000002 */
+#define USB_OTG_PCGCR_GATEHCLK                   USB_OTG_PCGCR_GATEHCLK_Msk    /*!< Gate HCLK */
+#define USB_OTG_PCGCR_PHYSUSP_Pos                (4U)                          
+#define USB_OTG_PCGCR_PHYSUSP_Msk                (0x1U << USB_OTG_PCGCR_PHYSUSP_Pos) /*!< 0x00000010 */
+#define USB_OTG_PCGCR_PHYSUSP                    USB_OTG_PCGCR_PHYSUSP_Msk     /*!< PHY suspended */
 
 #endif
