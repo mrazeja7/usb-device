@@ -60,6 +60,25 @@ void usb_core_init() // 29.17.1
     
 }
 
+//void OTG_FS_IRQHandler(void) 
+//{ 
+//    if (OTG_FS_GINTSTS & ???) 
+//    { 
+//        OTG_FS_GINTSTS = ???; 
+//        usb_reset(); 
+//    } 
+//    if (OTG_FS_GINTSTS & ???) 
+//    { 
+//        OTG_FS_GINTSTS = ???;
+//        usb_enum_done(); 
+//    } 
+//    if (OTG_FS_GINTSTS & ???) 
+//    { 
+//        usb_receive(); 
+//    } 
+//    return; 
+//}
+
 int main()
 {
     usb_init();
@@ -72,6 +91,9 @@ int main()
     NVIC_Init(&NVIC_InitStructure);
     
     usb_core_init();
+    
+    while(!(USB_OTG_FS->GINTSTS & USB_OTG_GINTSTS_USBRST));
+        __NOP();
     
     return 0;
 }
