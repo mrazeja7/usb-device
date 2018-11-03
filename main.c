@@ -28,36 +28,50 @@ void usb_init()
     
     // USB HW initialization
     GPIO_InitTypeDef GPIO_InitStructure;
-//  GPIO_InitStructure.GPIO_Pin = ??? | ??? | ???; 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12;
+    
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz; 
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF; 
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; 
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; 
+    
     GPIO_Init(GPIOA, &GPIO_InitStructure); 
-//  GPIO_PinAFConfig(GPIOA, ???, GPIO_AF_OTG_FS); 
-//  GPIO_PinAFConfig(GPIOA, ???, GPIO_AF_OTG_FS); 
-//  GPIO_PinAFConfig(GPIOA, ???, GPIO_AF_OTG_FS);
-    GPIO_PinAFConfig(GPIOA,GPIO_PinSource11, GPIO_AF_OTG1_FS); 
-    GPIO_PinAFConfig(GPIOA,GPIO_PinSource12, GPIO_AF_OTG1_FS);
+    
+    GPIO_PinAFConfig(GPIOA,GPIO_PinSource10, GPIO_AF_OTG1_FS); // ID
+    GPIO_PinAFConfig(GPIOA,GPIO_PinSource11, GPIO_AF_OTG1_FS); // Data-
+    GPIO_PinAFConfig(GPIOA,GPIO_PinSource12, GPIO_AF_OTG1_FS); // Data+
+}
+
+void usb_core_init() // 29.17.1
+{
+    // 1
+    USB_OTG_FS->GAHBCFG |= USB_OTG_GAHBCFG_GINT | USB_OTG_GAHBCFG_PTXFELVL;
+    USB_OTG_FS->GINTSTS |= USB_OTG_GINTSTS_RXFLVL;
+    
+    // 2
+    // AHB = 168, TRDT = 15
+    USB_OTG_FS->GUSBCFG |= USB_OTG_GUSBCFG_HNPCAP | USB_OTG_GUSBCFG_SRPCAP | USB_OTG_GUSBCFG_TOCAL | (USB_OTG_GUSBCFG_TRDT & 0xF);
+    
+    // 3
+    USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_OTGINT | USB_OTG_GINTMSK_MMISM;
+    
+    // 4
+    // if (USB_OTG_FS->GINTSTS_CMOD & 0b1) // host mode, else device mode
+    
 }
 
 int main()
 {
-    *( (volatile unsigned long *) USB_REG1) = 0x00;
-    
     usb_init();
     
     NVIC_InitTypeDef NVIC_InitStructure;
-//    NVIC_InitStructure.NVIC_IRQChannel = ???; 
-//    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = ???; 
-//    NVIC_InitStructure.NVIC_IRQChannelSubPriority = ???; 
-//    NVIC_InitStructure.NVIC_IRQChannelCmd = ???; 
     NVIC_InitStructure.NVIC_IRQChannel = OTG_FS_IRQn;  
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
+    
+    usb_core_init();
     
     return 0;
 }
