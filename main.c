@@ -50,7 +50,9 @@ void usb_core_init() // 29.17.1
     
     // 2
     // AHB = 168, TRDT = 15
+    // force device mode?
     USB_OTG_FS->GUSBCFG |= USB_OTG_GUSBCFG_HNPCAP | USB_OTG_GUSBCFG_SRPCAP | USB_OTG_GUSBCFG_TOCAL | (USB_OTG_GUSBCFG_TRDT & 0xF);
+
     
     // 3
     USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_OTGINT | USB_OTG_GINTMSK_MMISM;
