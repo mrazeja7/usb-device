@@ -2,9 +2,12 @@
 #ifndef __USB_DEFS_H
 #define __USB_DEFS_H
 
-#define USB_OTG_FS_PERIPH_BASE               0x50000000U
-#define USB_REG1 (USB_BASE_ADDRESS + 0x0000) 
-#define USB_REG2 (USB_BASE_ADDRESS + 0x0004) 
+#define USB_OTG_FS_PERIPH_BASE               0x50000000
+#define USB_OTG_FS          ((USB_OTG_GlobalTypeDef *) USB_OTG_FS_PERIPH_BASE)
+#define USB_OTG_DEVICE_BASE                  0x800
+#define USB_OTG_DEVICE_ADDR (USB_OTG_FS_PERIPH_BASE + USB_OTG_DEVICE_BASE)
+#define USBD_FS							((USB_OTG_DeviceTypeDef *) USB_OTG_DEVICE_ADDR)//0x50000800
+
 
 typedef struct
 {
@@ -364,5 +367,85 @@ typedef struct
 #define USB_OTG_PCGCR_PHYSUSP_Pos                (4U)                          
 #define USB_OTG_PCGCR_PHYSUSP_Msk                (0x1U << USB_OTG_PCGCR_PHYSUSP_Pos) /*!< 0x00000010 */
 #define USB_OTG_PCGCR_PHYSUSP                    USB_OTG_PCGCR_PHYSUSP_Msk     /*!< PHY suspended */
+
+/********************  Bit definition for USB_OTG_GINTSTS register  ********************/
+#define USB_OTG_GINTSTS_CMOD_Pos                 (0U)                          
+#define USB_OTG_GINTSTS_CMOD_Msk                 (0x1U << USB_OTG_GINTSTS_CMOD_Pos) /*!< 0x00000001 */
+#define USB_OTG_GINTSTS_CMOD                     USB_OTG_GINTSTS_CMOD_Msk      /*!< Current mode of operation                      */
+#define USB_OTG_GINTSTS_MMIS_Pos                 (1U)                          
+#define USB_OTG_GINTSTS_MMIS_Msk                 (0x1U << USB_OTG_GINTSTS_MMIS_Pos) /*!< 0x00000002 */
+#define USB_OTG_GINTSTS_MMIS                     USB_OTG_GINTSTS_MMIS_Msk      /*!< Mode mismatch interrupt                        */
+#define USB_OTG_GINTSTS_OTGINT_Pos               (2U)                          
+#define USB_OTG_GINTSTS_OTGINT_Msk               (0x1U << USB_OTG_GINTSTS_OTGINT_Pos) /*!< 0x00000004 */
+#define USB_OTG_GINTSTS_OTGINT                   USB_OTG_GINTSTS_OTGINT_Msk    /*!< OTG interrupt                                  */
+#define USB_OTG_GINTSTS_SOF_Pos                  (3U)                          
+#define USB_OTG_GINTSTS_SOF_Msk                  (0x1U << USB_OTG_GINTSTS_SOF_Pos) /*!< 0x00000008 */
+#define USB_OTG_GINTSTS_SOF                      USB_OTG_GINTSTS_SOF_Msk       /*!< Start of frame                                 */
+#define USB_OTG_GINTSTS_RXFLVL_Pos               (4U)                          
+#define USB_OTG_GINTSTS_RXFLVL_Msk               (0x1U << USB_OTG_GINTSTS_RXFLVL_Pos) /*!< 0x00000010 */
+#define USB_OTG_GINTSTS_RXFLVL                   USB_OTG_GINTSTS_RXFLVL_Msk    /*!< RxFIFO nonempty                                */
+#define USB_OTG_GINTSTS_NPTXFE_Pos               (5U)                          
+#define USB_OTG_GINTSTS_NPTXFE_Msk               (0x1U << USB_OTG_GINTSTS_NPTXFE_Pos) /*!< 0x00000020 */
+#define USB_OTG_GINTSTS_NPTXFE                   USB_OTG_GINTSTS_NPTXFE_Msk    /*!< Nonperiodic TxFIFO empty                       */
+#define USB_OTG_GINTSTS_GINAKEFF_Pos             (6U)                          
+#define USB_OTG_GINTSTS_GINAKEFF_Msk             (0x1U << USB_OTG_GINTSTS_GINAKEFF_Pos) /*!< 0x00000040 */
+#define USB_OTG_GINTSTS_GINAKEFF                 USB_OTG_GINTSTS_GINAKEFF_Msk  /*!< Global IN nonperiodic NAK effective            */
+#define USB_OTG_GINTSTS_BOUTNAKEFF_Pos           (7U)                          
+#define USB_OTG_GINTSTS_BOUTNAKEFF_Msk           (0x1U << USB_OTG_GINTSTS_BOUTNAKEFF_Pos) /*!< 0x00000080 */
+#define USB_OTG_GINTSTS_BOUTNAKEFF               USB_OTG_GINTSTS_BOUTNAKEFF_Msk /*!< Global OUT NAK effective                       */
+#define USB_OTG_GINTSTS_ESUSP_Pos                (10U)                         
+#define USB_OTG_GINTSTS_ESUSP_Msk                (0x1U << USB_OTG_GINTSTS_ESUSP_Pos) /*!< 0x00000400 */
+#define USB_OTG_GINTSTS_ESUSP                    USB_OTG_GINTSTS_ESUSP_Msk     /*!< Early suspend                                  */
+#define USB_OTG_GINTSTS_USBSUSP_Pos              (11U)                         
+#define USB_OTG_GINTSTS_USBSUSP_Msk              (0x1U << USB_OTG_GINTSTS_USBSUSP_Pos) /*!< 0x00000800 */
+#define USB_OTG_GINTSTS_USBSUSP                  USB_OTG_GINTSTS_USBSUSP_Msk   /*!< USB suspend                                    */
+#define USB_OTG_GINTSTS_USBRST_Pos               (12U)                         
+#define USB_OTG_GINTSTS_USBRST_Msk               (0x1U << USB_OTG_GINTSTS_USBRST_Pos) /*!< 0x00001000 */
+#define USB_OTG_GINTSTS_USBRST                   USB_OTG_GINTSTS_USBRST_Msk    /*!< USB reset                                      */
+#define USB_OTG_GINTSTS_ENUMDNE_Pos              (13U)                         
+#define USB_OTG_GINTSTS_ENUMDNE_Msk              (0x1U << USB_OTG_GINTSTS_ENUMDNE_Pos) /*!< 0x00002000 */
+#define USB_OTG_GINTSTS_ENUMDNE                  USB_OTG_GINTSTS_ENUMDNE_Msk   /*!< Enumeration done                               */
+#define USB_OTG_GINTSTS_ISOODRP_Pos              (14U)                         
+#define USB_OTG_GINTSTS_ISOODRP_Msk              (0x1U << USB_OTG_GINTSTS_ISOODRP_Pos) /*!< 0x00004000 */
+#define USB_OTG_GINTSTS_ISOODRP                  USB_OTG_GINTSTS_ISOODRP_Msk   /*!< Isochronous OUT packet dropped interrupt       */
+#define USB_OTG_GINTSTS_EOPF_Pos                 (15U)                         
+#define USB_OTG_GINTSTS_EOPF_Msk                 (0x1U << USB_OTG_GINTSTS_EOPF_Pos) /*!< 0x00008000 */
+#define USB_OTG_GINTSTS_EOPF                     USB_OTG_GINTSTS_EOPF_Msk      /*!< End of periodic frame interrupt                */
+#define USB_OTG_GINTSTS_IEPINT_Pos               (18U)                         
+#define USB_OTG_GINTSTS_IEPINT_Msk               (0x1U << USB_OTG_GINTSTS_IEPINT_Pos) /*!< 0x00040000 */
+#define USB_OTG_GINTSTS_IEPINT                   USB_OTG_GINTSTS_IEPINT_Msk    /*!< IN endpoint interrupt                          */
+#define USB_OTG_GINTSTS_OEPINT_Pos               (19U)                         
+#define USB_OTG_GINTSTS_OEPINT_Msk               (0x1U << USB_OTG_GINTSTS_OEPINT_Pos) /*!< 0x00080000 */
+#define USB_OTG_GINTSTS_OEPINT                   USB_OTG_GINTSTS_OEPINT_Msk    /*!< OUT endpoint interrupt                         */
+#define USB_OTG_GINTSTS_IISOIXFR_Pos             (20U)                         
+#define USB_OTG_GINTSTS_IISOIXFR_Msk             (0x1U << USB_OTG_GINTSTS_IISOIXFR_Pos) /*!< 0x00100000 */
+#define USB_OTG_GINTSTS_IISOIXFR                 USB_OTG_GINTSTS_IISOIXFR_Msk  /*!< Incomplete isochronous IN transfer             */
+#define USB_OTG_GINTSTS_PXFR_INCOMPISOOUT_Pos    (21U)                         
+#define USB_OTG_GINTSTS_PXFR_INCOMPISOOUT_Msk    (0x1U << USB_OTG_GINTSTS_PXFR_INCOMPISOOUT_Pos) /*!< 0x00200000 */
+#define USB_OTG_GINTSTS_PXFR_INCOMPISOOUT        USB_OTG_GINTSTS_PXFR_INCOMPISOOUT_Msk /*!< Incomplete periodic transfer                   */
+#define USB_OTG_GINTSTS_DATAFSUSP_Pos            (22U)                         
+#define USB_OTG_GINTSTS_DATAFSUSP_Msk            (0x1U << USB_OTG_GINTSTS_DATAFSUSP_Pos) /*!< 0x00400000 */
+#define USB_OTG_GINTSTS_DATAFSUSP                USB_OTG_GINTSTS_DATAFSUSP_Msk /*!< Data fetch suspended                           */
+#define USB_OTG_GINTSTS_HPRTINT_Pos              (24U)                         
+#define USB_OTG_GINTSTS_HPRTINT_Msk              (0x1U << USB_OTG_GINTSTS_HPRTINT_Pos) /*!< 0x01000000 */
+#define USB_OTG_GINTSTS_HPRTINT                  USB_OTG_GINTSTS_HPRTINT_Msk   /*!< Host port interrupt                            */
+#define USB_OTG_GINTSTS_HCINT_Pos                (25U)                         
+#define USB_OTG_GINTSTS_HCINT_Msk                (0x1U << USB_OTG_GINTSTS_HCINT_Pos) /*!< 0x02000000 */
+#define USB_OTG_GINTSTS_HCINT                    USB_OTG_GINTSTS_HCINT_Msk     /*!< Host channels interrupt                        */
+#define USB_OTG_GINTSTS_PTXFE_Pos                (26U)                         
+#define USB_OTG_GINTSTS_PTXFE_Msk                (0x1U << USB_OTG_GINTSTS_PTXFE_Pos) /*!< 0x04000000 */
+#define USB_OTG_GINTSTS_PTXFE                    USB_OTG_GINTSTS_PTXFE_Msk     /*!< Periodic TxFIFO empty                          */
+#define USB_OTG_GINTSTS_CIDSCHG_Pos              (28U)                         
+#define USB_OTG_GINTSTS_CIDSCHG_Msk              (0x1U << USB_OTG_GINTSTS_CIDSCHG_Pos) /*!< 0x10000000 */
+#define USB_OTG_GINTSTS_CIDSCHG                  USB_OTG_GINTSTS_CIDSCHG_Msk   /*!< Connector ID status change                     */
+#define USB_OTG_GINTSTS_DISCINT_Pos              (29U)                         
+#define USB_OTG_GINTSTS_DISCINT_Msk              (0x1U << USB_OTG_GINTSTS_DISCINT_Pos) /*!< 0x20000000 */
+#define USB_OTG_GINTSTS_DISCINT                  USB_OTG_GINTSTS_DISCINT_Msk   /*!< Disconnect detected interrupt                  */
+#define USB_OTG_GINTSTS_SRQINT_Pos               (30U)                         
+#define USB_OTG_GINTSTS_SRQINT_Msk               (0x1U << USB_OTG_GINTSTS_SRQINT_Pos) /*!< 0x40000000 */
+#define USB_OTG_GINTSTS_SRQINT                   USB_OTG_GINTSTS_SRQINT_Msk    /*!< Session request/new session detected interrupt */
+#define USB_OTG_GINTSTS_WKUINT_Pos               (31U)                         
+#define USB_OTG_GINTSTS_WKUINT_Msk               (0x1U << USB_OTG_GINTSTS_WKUINT_Pos) /*!< 0x80000000 */
+#define USB_OTG_GINTSTS_WKUINT                   USB_OTG_GINTSTS_WKUINT_Msk    /*!< Resume/remote wakeup detected interrupt        */
 
 #endif
