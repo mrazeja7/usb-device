@@ -448,4 +448,21 @@ typedef struct
 #define USB_OTG_GINTSTS_WKUINT_Msk               (0x1U << USB_OTG_GINTSTS_WKUINT_Pos) /*!< 0x80000000 */
 #define USB_OTG_GINTSTS_WKUINT                   USB_OTG_GINTSTS_WKUINT_Msk    /*!< Resume/remote wakeup detected interrupt        */
 
+/********************  Bit definition for USB_OTG_DSTS register  ********************/
+#define USB_OTG_DSTS_SUSPSTS_Pos                 (0U)                          
+#define USB_OTG_DSTS_SUSPSTS_Msk                 (0x1U << USB_OTG_DSTS_SUSPSTS_Pos) /*!< 0x00000001 */
+#define USB_OTG_DSTS_SUSPSTS                     USB_OTG_DSTS_SUSPSTS_Msk      /*!< Suspend status   */
+
+#define USB_OTG_DSTS_ENUMSPD_Pos                 (1U)                          
+#define USB_OTG_DSTS_ENUMSPD_Msk                 (0x3U << USB_OTG_DSTS_ENUMSPD_Pos) /*!< 0x00000006 */
+#define USB_OTG_DSTS_ENUMSPD                     USB_OTG_DSTS_ENUMSPD_Msk      /*!< Enumerated speed */
+#define USB_OTG_DSTS_ENUMSPD_0                   (0x1U << USB_OTG_DSTS_ENUMSPD_Pos) /*!< 0x00000002 */
+#define USB_OTG_DSTS_ENUMSPD_1                   (0x2U << USB_OTG_DSTS_ENUMSPD_Pos) /*!< 0x00000004 */
+#define USB_OTG_DSTS_EERR_Pos                    (3U)                          
+#define USB_OTG_DSTS_EERR_Msk                    (0x1U << USB_OTG_DSTS_EERR_Pos) /*!< 0x00000008 */
+#define USB_OTG_DSTS_EERR                        USB_OTG_DSTS_EERR_Msk         /*!< Erratic error     */
+#define USB_OTG_DSTS_FNSOF_Pos                   (8U)                          
+#define USB_OTG_DSTS_FNSOF_Msk                   (0x3FFFU << USB_OTG_DSTS_FNSOF_Pos) /*!< 0x003FFF00 */
+#define USB_OTG_DSTS_FNSOF                       USB_OTG_DSTS_FNSOF_Msk        /*!< Frame number of the received SOF */
+
 #endif

@@ -133,6 +133,7 @@ void OTG_FS_IRQHandler(void)
     if (USB_OTG_FS->GINTSTS & USB_OTG_GINTSTS_ENUMDNE)
     {
         // determine enumeration speed
+        uint32_t spd = USB_OTG_DSTS_ENUMSPD;
         while (1);
     }
     
@@ -160,12 +161,9 @@ void TimingDelay_Decrement(void)
   }
 }
 
-RCC_ClocksTypeDef RCC_Clocks;
 int main()
 {
     sysclk_init();
-//    RCC_GetClocksFreq(&RCC_Clocks);
-//    SysTick_Config(RCC_Clocks.HCLK_Frequency / 1000); 
     usb_init();
     Delay(500);
     usb_core_init();
@@ -176,8 +174,6 @@ int main()
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
-    
-
     
     return 0;
 }
