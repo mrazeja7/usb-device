@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "delay.h" // TODO weird code
+#include "lcd_func.h"
 
 
 void sysclk_init()
@@ -130,21 +131,29 @@ void OTG_FS_IRQHandler(void)
     
     if (USB_OTG_FS->GINTSTS & USB_OTG_GINTSTS_USBRST)
     {
+        displayText("USBRST", 6, 0);
         // reset caught
     }
     if (USB_OTG_FS->GINTSTS & USB_OTG_GINTSTS_ENUMDNE)
     {
+        displayText("ENUMDNE", 7, 0);
         // determine enumeration speed
         uint32_t spd = USB_OTG_DSTS_ENUMSPD;
         while (1);
     }
     
     return; 
-}
+} 
 
 int main()
 {
     sysclk_init();
+    
+    LCD_Init();
+    LCD_SetFont(&Font16x24); 
+    
+    displayText("LCD init done", 13, 1);
+
     usb_init();
     Delay(500);
     usb_core_init();

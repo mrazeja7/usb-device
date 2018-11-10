@@ -2514,6 +2514,9 @@
         <name>$PROJ_DIR$\lcd.c</name>
     </file>
     <file>
+        <name>$PROJ_DIR$\lcd_func.c</name>
+    </file>
+    <file>
         <name>$PROJ_DIR$\main.c</name>
     </file>
 </project>
