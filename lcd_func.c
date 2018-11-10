@@ -5,6 +5,7 @@
 #include <stdio.h>
 #define ROW_HEIGHT 24
 #define CHARS_PER_LINE 20
+#define MAX_LINES (240/ROW_HEIGHT)
 
 void displayAsHex(uint8_t *data, uint16_t len)
 {
@@ -26,6 +27,11 @@ void displayText(uint8_t *data, uint16_t len, uint8_t overwrite)
     uint8_t rows = len/CHARS_PER_LINE + 1;
     // overwrite = zacit psat na zacatek displeje?
     uint8_t startingRow = overwrite ? 0 : nextRow;
+    if (startingRow >= MAX_LINES)
+    {
+        startingRow = 0;
+        LCD_Clear(0xffff);
+    }
     
     for (uint8_t line = 0; line < rows; ++line)
     {
