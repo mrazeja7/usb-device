@@ -206,5 +206,7 @@ int main()
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
     
-    return 0;
+    while(1);
+    // sometimes exits during debugging before receiving ENUMDNE
+//    return 0;
 }
