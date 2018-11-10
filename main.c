@@ -112,6 +112,34 @@ void usb_core_init()
     while(!(USB_OTG_FS->GINTSTS & USB_OTG_GINTSTS_USBRST));
 }
 
+void usb_reset()
+{
+    // 29.17.5
+    
+    // 1
+    USB_OTG_OUT_ENDPOINT0->DOEPCTL   |= USB_OTG_DOEPCTL_SNAK;
+    USB_OTG_OUT_ENDPOINT(1)->DOEPCTL |= USB_OTG_DOEPCTL_SNAK;
+    USB_OTG_OUT_ENDPOINT(2)->DOEPCTL |= USB_OTG_DOEPCTL_SNAK;
+    USB_OTG_OUT_ENDPOINT(3)->DOEPCTL |= USB_OTG_DOEPCTL_SNAK;
+    
+    // 2
+    USBD_FS->DAINTMSK |= (0x1 | (0x1 << 16) ); // IEPM = bit 0, OEPM = bit 16
+    USBD_FS->DOEPMSK |= USB_OTG_DOEPMSK_STUPM | USB_OTG_DOEPMSK_XFRCM;
+    USBD_FS->DIEPMSK |= USB_OTG_DIEPMSK_XFRCM | USB_OTG_DIEPMSK_TOM;
+    
+    // 3
+    USB_OTG_FS->GRXFSIZ = 256; // min 16, max 256  
+    
+    // ??? DIEPTXF0_HNPTXFSIZ is the only register I found with a zero in its name ???
+    // http://www.disca.upv.es/aperles/arm_cortex_m3/llibre/st/STM32F439xx_User_Manual/stm32f4xx__hal__pcd__ex_8c_source.html - LINE 108, slightly changed
+	USB_OTG_FS->DIEPTXF0_HNPTXFSIZ = (256 << USB_OTG_TX0FD_Pos);
+	USB_OTG_FS->DIEPTXF0_HNPTXFSIZ |= 256; // what is this?
+    
+	//4.
+    USB_OTG_OUT_ENDPOINT0->DOEPTSIZ |= USB_OTG_DOEPTSIZ_STUPCNT_0 | USB_OTG_DOEPTSIZ_STUPCNT_1; // 0b11
+    displayText("USB reset complete", 18, 0);	
+}
+
 void OTG_FS_IRQHandler(void) 
 { 
 //    if (OTG_FS_GINTSTS & ???) 
@@ -133,12 +161,13 @@ void OTG_FS_IRQHandler(void)
     {
         displayText("USBRST", 6, 0);
         // reset caught
+        usb_reset();
     }
     if (USB_OTG_FS->GINTSTS & USB_OTG_GINTSTS_ENUMDNE)
     {
         displayText("ENUMDNE", 7, 0);
         // determine enumeration speed
-        uint32_t spd = USB_OTG_DSTS_ENUMSPD;
+        //uint32_t spd = USB_OTG_DSTS_ENUMSPD;
         while (1);
     }
     
