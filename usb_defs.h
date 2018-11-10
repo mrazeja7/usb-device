@@ -484,6 +484,26 @@ typedef struct
 #define USB_OTG_OUT_ENDPOINT0               ((USB_OTG_OUTEndpointTypeDef *) USB_OTG_OUT_ENDPOINT0_ADDR)
 #define USB_OTG_OUT_ENDPOINT(x)             ((USB_OTG_OUTEndpointTypeDef *) (USB_OTG_OUT_ENDPOINT0_ADDR+(x*0x20)))
 
+/** 
+  * @brief USB_OTG_IN_Endpoint-Specific_Register
+  */
+typedef struct 
+{
+  __IO uint32_t DIEPCTL;           /*!< dev IN Endpoint Control Reg    900h + (ep_num * 20h) + 00h */
+  uint32_t Reserved04;             /*!< Reserved                       900h + (ep_num * 20h) + 04h */
+  __IO uint32_t DIEPINT;           /*!< dev IN Endpoint Itr Reg        900h + (ep_num * 20h) + 08h */
+  uint32_t Reserved0C;             /*!< Reserved                       900h + (ep_num * 20h) + 0Ch */
+  __IO uint32_t DIEPTSIZ;          /*!< IN Endpoint Txfer Size         900h + (ep_num * 20h) + 10h */
+  __IO uint32_t DIEPDMA;           /*!< IN Endpoint DMA Address Reg    900h + (ep_num * 20h) + 14h */
+  __IO uint32_t DTXFSTS;           /*!< IN Endpoint Tx FIFO Status Reg 900h + (ep_num * 20h) + 18h */
+  uint32_t Reserved18;             /*!< Reserved  900h+(ep_num*20h)+1Ch-900h+ (ep_num * 20h) + 1Ch */
+} USB_OTG_INEndpointTypeDef;
+
+#define USB_OTG_IN_ENDPOINT_BASE           0x900U
+#define USB_OTG_IN_ENDPOINT0_ADDR          (USB_OTG_FS_PERIPH_BASE+USB_OTG_IN_ENDPOINT_BASE) 
+#define USB_OTG_IN_ENDPOINT0               ((USB_OTG_INEndpointTypeDef *) USB_OTG_IN_ENDPOINT0_ADDR)
+#define USB_OTG_IN_ENDPOINT(x)             ((USB_OTG_INEndpointTypeDef *) (USB_OTG_IN_ENDPOINT0_ADDR+(x*0x20)))
+
 /********************  Bit definition for USB_OTG_DOEPCTL register  ********************/
 
 #define USB_OTG_DOEPCTL_MPSIZ_Pos                (0U)                          
@@ -615,5 +635,54 @@ typedef struct
 #define USB_OTG_DOEPTSIZ_STUPCNT                 USB_OTG_DOEPTSIZ_STUPCNT_Msk  /*!< SETUP packet count */
 #define USB_OTG_DOEPTSIZ_STUPCNT_0               (0x1U << USB_OTG_DOEPTSIZ_STUPCNT_Pos) /*!< 0x20000000 */
 #define USB_OTG_DOEPTSIZ_STUPCNT_1               (0x2U << USB_OTG_DOEPTSIZ_STUPCNT_Pos) /*!< 0x40000000 */
+
+/********************  Bit definition for USB_OTG_DIEPCTL register  ********************/
+#define USB_OTG_DIEPCTL_MPSIZ_Pos                (0U)                          
+#define USB_OTG_DIEPCTL_MPSIZ_Msk                (0x7FFU << USB_OTG_DIEPCTL_MPSIZ_Pos) /*!< 0x000007FF */
+#define USB_OTG_DIEPCTL_MPSIZ                    USB_OTG_DIEPCTL_MPSIZ_Msk     /*!< Maximum packet size              */
+#define USB_OTG_DIEPCTL_USBAEP_Pos               (15U)                         
+#define USB_OTG_DIEPCTL_USBAEP_Msk               (0x1U << USB_OTG_DIEPCTL_USBAEP_Pos) /*!< 0x00008000 */
+#define USB_OTG_DIEPCTL_USBAEP                   USB_OTG_DIEPCTL_USBAEP_Msk    /*!< USB active endpoint              */
+#define USB_OTG_DIEPCTL_EONUM_DPID_Pos           (16U)                         
+#define USB_OTG_DIEPCTL_EONUM_DPID_Msk           (0x1U << USB_OTG_DIEPCTL_EONUM_DPID_Pos) /*!< 0x00010000 */
+#define USB_OTG_DIEPCTL_EONUM_DPID               USB_OTG_DIEPCTL_EONUM_DPID_Msk /*!< Even/odd frame                   */
+#define USB_OTG_DIEPCTL_NAKSTS_Pos               (17U)                         
+#define USB_OTG_DIEPCTL_NAKSTS_Msk               (0x1U << USB_OTG_DIEPCTL_NAKSTS_Pos) /*!< 0x00020000 */
+#define USB_OTG_DIEPCTL_NAKSTS                   USB_OTG_DIEPCTL_NAKSTS_Msk    /*!< NAK status                       */
+
+#define USB_OTG_DIEPCTL_EPTYP_Pos                (18U)                         
+#define USB_OTG_DIEPCTL_EPTYP_Msk                (0x3U << USB_OTG_DIEPCTL_EPTYP_Pos) /*!< 0x000C0000 */
+#define USB_OTG_DIEPCTL_EPTYP                    USB_OTG_DIEPCTL_EPTYP_Msk     /*!< Endpoint type                    */
+#define USB_OTG_DIEPCTL_EPTYP_0                  (0x1U << USB_OTG_DIEPCTL_EPTYP_Pos) /*!< 0x00040000 */
+#define USB_OTG_DIEPCTL_EPTYP_1                  (0x2U << USB_OTG_DIEPCTL_EPTYP_Pos) /*!< 0x00080000 */
+#define USB_OTG_DIEPCTL_STALL_Pos                (21U)                         
+#define USB_OTG_DIEPCTL_STALL_Msk                (0x1U << USB_OTG_DIEPCTL_STALL_Pos) /*!< 0x00200000 */
+#define USB_OTG_DIEPCTL_STALL                    USB_OTG_DIEPCTL_STALL_Msk     /*!< STALL handshake                  */
+
+#define USB_OTG_DIEPCTL_TXFNUM_Pos               (22U)                         
+#define USB_OTG_DIEPCTL_TXFNUM_Msk               (0xFU << USB_OTG_DIEPCTL_TXFNUM_Pos) /*!< 0x03C00000 */
+#define USB_OTG_DIEPCTL_TXFNUM                   USB_OTG_DIEPCTL_TXFNUM_Msk    /*!< TxFIFO number                    */
+#define USB_OTG_DIEPCTL_TXFNUM_0                 (0x1U << USB_OTG_DIEPCTL_TXFNUM_Pos) /*!< 0x00400000 */
+#define USB_OTG_DIEPCTL_TXFNUM_1                 (0x2U << USB_OTG_DIEPCTL_TXFNUM_Pos) /*!< 0x00800000 */
+#define USB_OTG_DIEPCTL_TXFNUM_2                 (0x4U << USB_OTG_DIEPCTL_TXFNUM_Pos) /*!< 0x01000000 */
+#define USB_OTG_DIEPCTL_TXFNUM_3                 (0x8U << USB_OTG_DIEPCTL_TXFNUM_Pos) /*!< 0x02000000 */
+#define USB_OTG_DIEPCTL_CNAK_Pos                 (26U)                         
+#define USB_OTG_DIEPCTL_CNAK_Msk                 (0x1U << USB_OTG_DIEPCTL_CNAK_Pos) /*!< 0x04000000 */
+#define USB_OTG_DIEPCTL_CNAK                     USB_OTG_DIEPCTL_CNAK_Msk      /*!< Clear NAK                        */
+#define USB_OTG_DIEPCTL_SNAK_Pos                 (27U)                         
+#define USB_OTG_DIEPCTL_SNAK_Msk                 (0x1U << USB_OTG_DIEPCTL_SNAK_Pos) /*!< 0x08000000 */
+#define USB_OTG_DIEPCTL_SNAK                     USB_OTG_DIEPCTL_SNAK_Msk      /*!< Set NAK */
+#define USB_OTG_DIEPCTL_SD0PID_SEVNFRM_Pos       (28U)                         
+#define USB_OTG_DIEPCTL_SD0PID_SEVNFRM_Msk       (0x1U << USB_OTG_DIEPCTL_SD0PID_SEVNFRM_Pos) /*!< 0x10000000 */
+#define USB_OTG_DIEPCTL_SD0PID_SEVNFRM           USB_OTG_DIEPCTL_SD0PID_SEVNFRM_Msk /*!< Set DATA0 PID                    */
+#define USB_OTG_DIEPCTL_SODDFRM_Pos              (29U)                         
+#define USB_OTG_DIEPCTL_SODDFRM_Msk              (0x1U << USB_OTG_DIEPCTL_SODDFRM_Pos) /*!< 0x20000000 */
+#define USB_OTG_DIEPCTL_SODDFRM                  USB_OTG_DIEPCTL_SODDFRM_Msk   /*!< Set odd frame                    */
+#define USB_OTG_DIEPCTL_EPDIS_Pos                (30U)                         
+#define USB_OTG_DIEPCTL_EPDIS_Msk                (0x1U << USB_OTG_DIEPCTL_EPDIS_Pos) /*!< 0x40000000 */
+#define USB_OTG_DIEPCTL_EPDIS                    USB_OTG_DIEPCTL_EPDIS_Msk     /*!< Endpoint disable                 */
+#define USB_OTG_DIEPCTL_EPENA_Pos                (31U)                         
+#define USB_OTG_DIEPCTL_EPENA_Msk                (0x1U << USB_OTG_DIEPCTL_EPENA_Pos) /*!< 0x80000000 */
+#define USB_OTG_DIEPCTL_EPENA                    USB_OTG_DIEPCTL_EPENA_Msk     /*!< Endpoint enable                  */
 
 #endif

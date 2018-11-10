@@ -137,7 +137,19 @@ void usb_reset()
     
 	//4.
     USB_OTG_OUT_ENDPOINT0->DOEPTSIZ |= USB_OTG_DOEPTSIZ_STUPCNT_0 | USB_OTG_DOEPTSIZ_STUPCNT_1; // 0b11
+    
+    USB_OTG_FS->GINTSTS |= USB_OTG_GINTSTS_USBRST;
     displayText("USB reset complete", 18, 0);	
+}
+
+void usb_enum_done()
+{
+    // 29.17.5
+    // enum speed is known as this is a USB_FS device
+    // MPSIZ should be set to 00 for 64 bytes, therefore no need to touch it
+    
+    USB_OTG_FS->GINTSTS |= USB_OTG_GINTSTS_ENUMDNE;
+    displayText("ENUMDNE complete", 16, 0);	
 }
 
 void OTG_FS_IRQHandler(void) 
@@ -157,18 +169,18 @@ void OTG_FS_IRQHandler(void)
 //        usb_receive(); 
 //    } 
     
-    if (USB_OTG_FS->GINTSTS & USB_OTG_GINTSTS_USBRST)
+    uint32_t gintsts = USB_OTG_FS->GINTSTS;
+    if (gintsts & USB_OTG_GINTSTS_USBRST)
     {
-        displayText("USBRST", 6, 0);
+//        displayText("USBRST", 6, 0);
         // reset caught
         usb_reset();
     }
-    if (USB_OTG_FS->GINTSTS & USB_OTG_GINTSTS_ENUMDNE)
+    if (gintsts & USB_OTG_GINTSTS_ENUMDNE)
     {
-        displayText("ENUMDNE", 7, 0);
-        // determine enumeration speed
-        //uint32_t spd = USB_OTG_DSTS_ENUMSPD;
-        while (1);
+//        displayText("ENUMDNE", 7, 0);     
+        usb_enum_done();
+//        while(1);
     }
     
     return; 
