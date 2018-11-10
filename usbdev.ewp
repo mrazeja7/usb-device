@@ -768,7 +768,7 @@
                 </option>
                 <option>
                     <name>IlinkIcfFile</name>
-                    <state>$TOOLKIT_DIR$\CONFIG\generic_cortex.icf</state>
+                    <state>$TOOLKIT_DIR$\config\linker\ST\stm32f407xG.icf</state>
                 </option>
                 <option>
                     <name>IlinkIcfFileSlave</name>
@@ -2197,6 +2197,9 @@
             <name>$PROJ_DIR$\lib\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_wwdg.c</name>
         </file>
     </group>
+    <file>
+        <name>$PROJ_DIR$\delay.c</name>
+    </file>
     <file>
         <name>$PROJ_DIR$\lcd.c</name>
     </file>

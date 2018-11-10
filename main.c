@@ -3,6 +3,8 @@
 #include "usb_defs.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "delay.h" // TODO weird code
+
 
 void sysclk_init()
 {
@@ -138,27 +140,6 @@ void OTG_FS_IRQHandler(void)
     }
     
     return; 
-}
-
-static __IO uint32_t uwTimingDelay;
-void Delay(__IO uint32_t nTime)
-{ 
-  uwTimingDelay = nTime;
-
-  while(uwTimingDelay-- != 0);
-}
-
-/**
-  * @brief  Decrements the TimingDelay variable.
-  * @param  None
-  * @retval None
-  */
-void TimingDelay_Decrement(void)
-{
-  if (uwTimingDelay != 0x00)
-  { 
-    uwTimingDelay--;
-  }
 }
 
 int main()
