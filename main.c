@@ -155,6 +155,25 @@ void usb_enum_done()
 void receive_setup(volatile uint32_t *data)
 {
     // https://www.beyondlogic.org/usbnutshell/usb6.shtml#SetupPacket
+    uint8_t bmRequestType = (uint8_t) data[0];
+    uint8_t bRequest = (uint8_t) (data[0] >> 8);
+    uint16_t wValue = (uint16_t) (data[0] >> 16);
+    uint16_t wIndex = (uint16_t) data[1];
+    uint16_t wLength = (uint16_t) (data[1] >> 16);
+    
+    uint8_t recipient = bmRequestType & 0x1F; // D4..0
+    uint8_t type = (bmRequestType & 0x60) >> 6; // D6,5
+    uint8_t direction = (bmRequestType & 0x80) >> 7; // D7
+    
+    switch(recipient)
+    {
+        case device:
+            switch(type)
+            {
+                case standard:
+                    break;
+            }
+    }
 }
 
 void usb_receive()

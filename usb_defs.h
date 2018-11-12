@@ -749,4 +749,18 @@ typedef struct
 #define USB_OTG_DFIFO_ADDR (USB_OTG_FS_PERIPH_BASE + 0x1000)
 #define USB_OTG_DFIFO ((volatile uint32_t *) USB_OTG_DFIFO_ADDR)
 
+/* SETUP packet request enums */
+enum {
+    standard = 0x0,
+    class = 0x1,
+    vendor = 0x2,
+    reserved = 0x3
+} Setup_request_type;
+enum {
+    device = 0x0,
+    interface = 0x1,
+    endpoint = 0x2,
+    other = 0x3
+} Setup_recipient;
+
 #endif
