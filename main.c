@@ -152,6 +152,38 @@ void usb_enum_done()
     displayText("ENUMDNE complete", 16, 0);	
 }
 
+uint8_t device_descriptor[18] = // 18 bytes
+{
+    18U, // bLength
+    0x1, // bDescriptorType
+    0x2,0x0, // bcdUSB
+    0x0, // bDeviceClass
+    0x0, // bDeviceSubClass
+    0x0, // bDeviceProtocol
+    64U, // bMaxPacketSize0      
+    0x04,0x83, // idVendor - https://www.the-sz.com/products/usbid/index.php?v=&p=&n=STMicroelectronics
+    0x12,0x34, // idProduct - don't care?
+    0x0,0x1, // bcdDevice - don't care?
+    0x0, // iManufacturer - no strings yet
+    0x0, // iProduct - no strings yet
+    0x0, // iSerialNumber - no strings yet
+    0x1 // bNumConfigurations
+};
+
+void handleDescriptors(uint16_t wValue, uint16_t wIndex, uint16_t wLength)
+{
+    char str[20];
+    uint8_t len = sprintf(str, "GET_DESC %02X %02X %02X", wValue, wIndex, wLength);
+    displayText((uint8_t*) str, len, 0);
+    
+    switch(wValue >> 8)
+    {
+        case device_desc:
+            // send device description at this point
+            break;
+    }
+}
+
 void receive_setup(volatile uint32_t *data)
 {
     // https://www.beyondlogic.org/usbnutshell/usb6.shtml#SetupPacket
@@ -165,13 +197,22 @@ void receive_setup(volatile uint32_t *data)
     uint8_t type = (bmRequestType & 0x60) >> 6; // D6,5
     uint8_t direction = (bmRequestType & 0x80) >> 7; // D7
     
+    char str[20];
+    uint8_t len = sprintf(str, "SET %02X %02X %02X %02X %u", recipient, type, direction, bRequest, wValue);
+//    displayText((uint8_t*) str, len, 0);
+    
     switch(recipient)
     {
         case device:
             switch(type)
             {
                 case standard:
-                    break;
+                    switch(bRequest)
+                    {
+                        case GET_DESCRIPTOR:
+                            handleDescriptors(wValue, wIndex, wLength);
+                            break;
+                    }
             }
     }
 }
@@ -185,11 +226,19 @@ void usb_receive()
     // 2
     USB_OTG_FS->GINTMSK &= ~USB_OTG_GINTMSK_RXFLVLM;
     
+//    displayText("RXFLVL interrupt", 16, 0);	
+    
     // 3, 4
     uint32_t bytecount = (grxstsp & USB_OTG_GRXSTSP_BCNT) >> USB_OTG_GRXSTSP_BCNT_Pos;
     uint8_t pktsts = (grxstsp & USB_OTG_GRXSTSP_PKTSTS) >> USB_OTG_GRXSTSP_PKTSTS_Pos;
     uint8_t dpid = (grxstsp & USB_OTG_GRXSTSP_DPID) >> USB_OTG_GRXSTSP_DPID_Pos;
-    uint8_t epnum = USB_OTG_GRXSTSP_EPNUM;
+    uint8_t epnum = grxstsp & USB_OTG_GRXSTSP_EPNUM;
+    
+//    displayNumber((uint16_t*) &pktsts, 0);
+    
+    char str[16];
+    uint8_t len = sprintf(str, "RXF %02X %02X %02X %02X", pktsts, bytecount, epnum, dpid);
+    displayText((uint8_t*) str, len, 0);
     
     if (bytecount > 0)
     {
@@ -200,6 +249,8 @@ void usb_receive()
         // 4b - setup packet pattern
         if (pktsts == PKTSTS_SETUP && bytecount == 0x008 && epnum == 0 && dpid == 0)
         {
+//            displayText("SETUP", 5, 0);            
+            
             volatile uint32_t data[2];
             for (int i = 0; i < wordcount; ++i)
                 data[i] = rxfifo[i];
@@ -210,7 +261,6 @@ void usb_receive()
     }
     // 5
     USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_RXFLVLM;
-//    displayText("RXFLVL interrupt", 16, 0);	
 }
 
 void OTG_FS_IRQHandler(void) 
@@ -259,7 +309,7 @@ int main()
     LCD_Init();
     LCD_SetFont(&Font16x24); 
     
-    displayText("LCD init done", 13, 1);
+//    displayText("LCD init done", 13, 1);
 
     usb_init();
     Delay(500);
