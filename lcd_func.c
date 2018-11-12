@@ -16,7 +16,7 @@ void displayAsHex(uint8_t *data, uint16_t len)
         sprintf(pos, "%02X", data[i]);
         pos += 2;
     }
-    displayText((uint8_t*)res, len*2, 1);
+    displayText((uint8_t*)res, len*2, 0);
     free(res);
 }
 
@@ -57,5 +57,5 @@ void displayNumber(uint16_t *num, uint8_t hex)
 {
     char str[8];
     uint8_t len = sprintf(str, (hex ? "%02X" : "%u"), *num);
-    displayText((uint8_t*) str, len, 1);
+    displayText((uint8_t*) str, len, 0);
 }
