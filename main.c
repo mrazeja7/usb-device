@@ -152,6 +152,35 @@ void usb_enum_done()
     displayText("ENUMDNE complete", 16, 0);	
 }
 
+void usb_receive()
+{
+    // 29.17.6
+    
+    // 1
+    uint32_t grxstsp = USB_OTG_FS->GRXSTSP;
+    // 2
+    USB_OTG_FS->GINTMSK &= ~USB_OTG_GINTMSK_RXFLVLM;
+    
+    // 3, 4
+    uint32_t bytecount = (grxstsp & USB_OTG_GRXSTSP_BCNT) >> USB_OTG_GRXSTSP_BCNT_Pos;
+    uint8_t pktsts = (grxstsp & USB_OTG_GRXSTSP_PKTSTS) >> USB_OTG_GRXSTSP_PKTSTS_Pos;
+    uint8_t dpid = (grxstsp & USB_OTG_GRXSTSP_DPID) >> USB_OTG_GRXSTSP_DPID_Pos;
+    uint8_t epnum = USB_OTG_GRXSTSP_EPNUM;
+    
+    if (bytecount > 0)
+    {
+        // 4b - setup packet pattern
+        if (pktsts == PKTSTS_SETUP && bytecount == 0x008 && epnum == 0 && dpid == 0)
+        {
+            // RX FIFO is at USB_base + 0x1000, pg 958 in ref guide
+            displayText("SETUP ready to recv", 19, 0);	
+        }
+    }
+    // 5
+    USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_RXFLVLM;
+//    displayText("RXFLVL interrupt", 16, 0);	
+}
+
 void OTG_FS_IRQHandler(void) 
 { 
 //    if (OTG_FS_GINTSTS & ???) 
@@ -181,6 +210,11 @@ void OTG_FS_IRQHandler(void)
 //        displayText("ENUMDNE", 7, 0);     
         usb_enum_done();
 //        while(1);
+    }
+    
+    if (gintsts & USB_OTG_GINTSTS_RXFLVL)
+    {
+        usb_receive();
     }
     
     return; 

@@ -718,4 +718,31 @@ typedef struct
 #define USB_OTG_GRSTCTL_AHBIDL_Msk               (0x1U << USB_OTG_GRSTCTL_AHBIDL_Pos) /*!< 0x80000000 */
 #define USB_OTG_GRSTCTL_AHBIDL                   USB_OTG_GRSTCTL_AHBIDL_Msk    /*!< AHB master idle */
 
+/********************  Bit definition for USB_OTG_GRXSTSP register  ********************/
+#define USB_OTG_GRXSTSP_EPNUM_Pos                (0U)                          
+#define USB_OTG_GRXSTSP_EPNUM_Msk                (0xFU << USB_OTG_GRXSTSP_EPNUM_Pos) /*!< 0x0000000F */
+#define USB_OTG_GRXSTSP_EPNUM                    USB_OTG_GRXSTSP_EPNUM_Msk     /*!< IN EP interrupt mask bits  */
+#define USB_OTG_GRXSTSP_BCNT_Pos                 (4U)                          
+#define USB_OTG_GRXSTSP_BCNT_Msk                 (0x7FFU << USB_OTG_GRXSTSP_BCNT_Pos) /*!< 0x00007FF0 */
+#define USB_OTG_GRXSTSP_BCNT                     USB_OTG_GRXSTSP_BCNT_Msk      /*!< OUT EP interrupt mask bits */
+#define USB_OTG_GRXSTSP_DPID_Pos                 (15U)                         
+#define USB_OTG_GRXSTSP_DPID_Msk                 (0x3U << USB_OTG_GRXSTSP_DPID_Pos) /*!< 0x00018000 */
+#define USB_OTG_GRXSTSP_DPID                     USB_OTG_GRXSTSP_DPID_Msk      /*!< OUT EP interrupt mask bits */
+#define USB_OTG_GRXSTSP_PKTSTS_Pos               (17U)                         
+#define USB_OTG_GRXSTSP_PKTSTS_Msk               (0xFU << USB_OTG_GRXSTSP_PKTSTS_Pos) /*!< 0x001E0000 */
+#define USB_OTG_GRXSTSP_PKTSTS                   USB_OTG_GRXSTSP_PKTSTS_Msk    /*!< OUT EP interrupt mask bits */
+
+/* USB_OTG_GRXSTSP_PKTSTS states */
+#define PKTSTS_GLOBAL_OUT_NAK   0x1
+#define PKTSTS_SETUP            0x6
+#define PKTSTS_SETUP_DONE       0x4
+#define PKTSTS_DATA_OUT         0x2
+#define PKTSTS_DATA_OUT_DONE    0x3
+
+/* USB_OTG_GRXSTSP_DPID states */
+#define DATA0_DPID 0x0
+#define DATA1_DPID 0x2
+#define DATA2_DPID 0x1
+#define MDATA_DPID 0x3
+
 #endif
