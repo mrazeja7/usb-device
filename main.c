@@ -170,18 +170,39 @@ uint8_t device_descriptor[18] = // 18 bytes
     0x1 // bNumConfigurations
 };
 
-void handleDescriptors(uint16_t wValue, uint16_t wIndex, uint16_t wLength)
+// need to remember the latest bRequest (multiple SETUP packets sent back to back)
+static __IO uint8_t lastbReq = 0x0;
+static __IO uint8_t wLength = 0x0;
+static __IO uint32_t lastbReqVal = 0x0;
+
+void sendDescriptor()
 {
-    char str[20];
-    uint8_t len = sprintf(str, "GET_DESC %02X %02X %02X", wValue, wIndex, wLength);
-    displayText((uint8_t*) str, len, 0);
-    
-    switch(wValue >> 8)
+    ///// TXFNUM
+    switch(lastbReqVal >> 8) // wValue
     {
         case device_desc:
-            // send device description at this point
+            // sendData(device_descriptor);
+            displayText("DEV DESC", 8, 0);
             break;
     }
+}
+
+void parseDescriptor(/*uint16_t wValue, uint16_t wIndex, uint16_t wLength*/)
+{
+//    char str[20];
+//    uint8_t len = sprintf(str, "GET_DESC %02X %02X %02X", wValue, wIndex, wLength);
+//    displayText((uint8_t*) str, len, 0);
+    
+    ///// STUP
+  
+    // send descriptor at this point
+    sendDescriptor();
+    
+    // reset last request information as this one is done
+    lastbReq = 0x0; 
+    lastbReqVal = 0x0;
+    
+    ///// XFRC
 }
 
 void receive_setup(volatile uint32_t *data)
@@ -198,8 +219,8 @@ void receive_setup(volatile uint32_t *data)
     uint8_t direction = (bmRequestType & 0x80) >> 7; // D7
     
     char str[20];
-    uint8_t len = sprintf(str, "SET %02X %02X %02X %02X %u", recipient, type, direction, bRequest, wValue);
-//    displayText((uint8_t*) str, len, 0);
+    uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %u", recipient, type, direction, bRequest, wValue);
+    displayText((uint8_t*) str, len, 0);
     
     switch(recipient)
     {
@@ -209,8 +230,9 @@ void receive_setup(volatile uint32_t *data)
                 case standard:
                     switch(bRequest)
                     {
-                        case GET_DESCRIPTOR:
-                            handleDescriptors(wValue, wIndex, wLength);
+                        case GET_DESCRIPTOR: // 0x6
+                            lastbReq = bRequest;
+                            lastbReqVal = wValue;
                             break;
                     }
             }
@@ -226,15 +248,11 @@ void usb_receive()
     // 2
     USB_OTG_FS->GINTMSK &= ~USB_OTG_GINTMSK_RXFLVLM;
     
-//    displayText("RXFLVL interrupt", 16, 0);	
-    
     // 3, 4
     uint32_t bytecount = (grxstsp & USB_OTG_GRXSTSP_BCNT) >> USB_OTG_GRXSTSP_BCNT_Pos;
     uint8_t pktsts = (grxstsp & USB_OTG_GRXSTSP_PKTSTS) >> USB_OTG_GRXSTSP_PKTSTS_Pos;
     uint8_t dpid = (grxstsp & USB_OTG_GRXSTSP_DPID) >> USB_OTG_GRXSTSP_DPID_Pos;
     uint8_t epnum = grxstsp & USB_OTG_GRXSTSP_EPNUM;
-    
-//    displayNumber((uint16_t*) &pktsts, 0);
     
     char str[16];
     uint8_t len = sprintf(str, "RXF %02X %02X %02X %02X", pktsts, bytecount, epnum, dpid);
@@ -245,58 +263,52 @@ void usb_receive()
         // RX FIFO is at USB_base + 0x1000, pg 958 in ref guide
         // https://community.st.com/s/question/0D50X00009Xkf0SSAR/usb-host-channel-interrupt-register-is-always-zero-after-a-transaction
         uint8_t wordcount = (bytecount + 3) / 4;
-        volatile uint32_t *rxfifo = USB_OTG_DFIFO;
+        volatile uint32_t *rxfifo = USB_OTG_RX_DFIFO;
         // 4b - setup packet pattern
         if (pktsts == PKTSTS_SETUP && bytecount == 0x008 && epnum == 0 && dpid == 0)
         {
-//            displayText("SETUP", 5, 0);            
-            
             volatile uint32_t data[2];
             for (int i = 0; i < wordcount; ++i)
                 data[i] = rxfifo[i];
             receive_setup(data);
-//            displayText("SETUP ready to recv", 19, 0);	
-//            displayNumber( (uint16_t*) &bytecount, 0);
         }
+    }
+    // 4c - setup phase done
+    if (pktsts == PKTSTS_SETUP_DONE && bytecount == 0 && epnum == 0) // don't care about dpid value
+    {
+        // don't need to do anything here since the FIFO is already empty - interrupt should be fired
+//        displayText("SETUP DONE", 10, 0);
     }
     // 5
     USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_RXFLVLM;
 }
 
 void OTG_FS_IRQHandler(void) 
-{ 
-//    if (OTG_FS_GINTSTS & ???) 
-//    { 
-//        OTG_FS_GINTSTS = ???; 
-//        //usb_reset(); 
-//    } 
-//    if (OTG_FS_GINTSTS & ???) 
-//    { 
-//        OTG_FS_GINTSTS = ???;
-//        usb_enum_done(); 
-//    } 
-//    if (OTG_FS_GINTSTS & ???) 
-//    { 
-//        usb_receive(); 
-//    } 
-    
+{
     uint32_t gintsts = USB_OTG_FS->GINTSTS;
+    uint32_t daint = USBD_FS->DAINT;
     if (gintsts & USB_OTG_GINTSTS_USBRST)
     {
-//        displayText("USBRST", 6, 0);
-        // reset caught
         usb_reset();
     }
+    
     if (gintsts & USB_OTG_GINTSTS_ENUMDNE)
-    {
-//        displayText("ENUMDNE", 7, 0);     
+    {    
         usb_enum_done();
-//        while(1);
     }
     
     if (gintsts & USB_OTG_GINTSTS_RXFLVL)
     {
         usb_receive();
+    }
+    
+    // page 1043
+    if (gintsts & USB_OTG_GINTSTS_OEPINT)
+    {
+        if (daint & USB_OTG_DAINT_OEPINT) // setup data transfer complete, handle last setup packet ///// 1 <<?
+        {            
+            parseDescriptor();
+        }
     }
     
     return; 
@@ -308,8 +320,6 @@ int main()
     
     LCD_Init();
     LCD_SetFont(&Font16x24); 
-    
-//    displayText("LCD init done", 13, 1);
 
     usb_init();
     Delay(500);

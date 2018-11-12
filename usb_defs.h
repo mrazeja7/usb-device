@@ -746,8 +746,9 @@ typedef struct
 #define MDATA_DPID 0x3
 
 /* USB receive FIFO address */
-#define USB_OTG_DFIFO_ADDR (USB_OTG_FS_PERIPH_BASE + 0x1000)
-#define USB_OTG_DFIFO ((volatile uint32_t *) USB_OTG_DFIFO_ADDR)
+#define USB_OTG_RX_DFIFO_ADDR (USB_OTG_FS_PERIPH_BASE + 0x1000)
+#define USB_OTG_RX_DFIFO ((volatile uint32_t *) USB_OTG_RX_DFIFO_ADDR)
+#define USB_OTG_TX_DFIFO ((volatile uint32_t *) USB_OTG_RX_DFIFO_ADDR)
 
 /* SETUP packet request enums */
 enum {
@@ -782,5 +783,44 @@ enum {
     other_speed_qualifier_desc = 0x7,
     otg_desc = 0x9
 } Setup_Get_Descriptor_values;
+
+/********************  Bit definition for USB_OTG_DAINT register  ********************/
+#define USB_OTG_DAINT_IEPINT_Pos                 (0U)                          
+#define USB_OTG_DAINT_IEPINT_Msk                 (0xFFFFU << USB_OTG_DAINT_IEPINT_Pos) /*!< 0x0000FFFF */
+#define USB_OTG_DAINT_IEPINT                     USB_OTG_DAINT_IEPINT_Msk      /*!< IN endpoint interrupt bits  */
+#define USB_OTG_DAINT_OEPINT_Pos                 (16U)                         
+#define USB_OTG_DAINT_OEPINT_Msk                 (0xFFFFU << USB_OTG_DAINT_OEPINT_Pos) /*!< 0xFFFF0000 */
+#define USB_OTG_DAINT_OEPINT                     USB_OTG_DAINT_OEPINT_Msk      /*!< OUT endpoint interrupt bits */
+
+/********************  Bit definition for USB_OTG_DIEPTSIZ register  ********************/
+#define USB_OTG_DIEPTSIZ_XFRSIZ_Pos              (0U)                          
+#define USB_OTG_DIEPTSIZ_XFRSIZ_Msk              (0x7FFFFU << USB_OTG_DIEPTSIZ_XFRSIZ_Pos) /*!< 0x0007FFFF */
+#define USB_OTG_DIEPTSIZ_XFRSIZ                  USB_OTG_DIEPTSIZ_XFRSIZ_Msk   /*!< Transfer size */
+#define USB_OTG_DIEPTSIZ_PKTCNT_Pos              (19U)                         
+#define USB_OTG_DIEPTSIZ_PKTCNT_Msk              (0x3FFU << USB_OTG_DIEPTSIZ_PKTCNT_Pos) /*!< 0x1FF80000 */
+#define USB_OTG_DIEPTSIZ_PKTCNT                  USB_OTG_DIEPTSIZ_PKTCNT_Msk   /*!< Packet count */
+#define USB_OTG_DIEPTSIZ_MULCNT_Pos              (29U)                         
+#define USB_OTG_DIEPTSIZ_MULCNT_Msk              (0x3U << USB_OTG_DIEPTSIZ_MULCNT_Pos) /*!< 0x60000000 */
+#define USB_OTG_DIEPTSIZ_MULCNT                  USB_OTG_DIEPTSIZ_MULCNT_Msk   /*!< Packet count */
+
+/********************  Bit definition for USB_OTG_DOEPINT register  ********************/
+#define USB_OTG_DOEPINT_XFRC_Pos                 (0U)                          
+#define USB_OTG_DOEPINT_XFRC_Msk                 (0x1U << USB_OTG_DOEPINT_XFRC_Pos) /*!< 0x00000001 */
+#define USB_OTG_DOEPINT_XFRC                     USB_OTG_DOEPINT_XFRC_Msk      /*!< Transfer completed interrupt */
+#define USB_OTG_DOEPINT_EPDISD_Pos               (1U)                          
+#define USB_OTG_DOEPINT_EPDISD_Msk               (0x1U << USB_OTG_DOEPINT_EPDISD_Pos) /*!< 0x00000002 */
+#define USB_OTG_DOEPINT_EPDISD                   USB_OTG_DOEPINT_EPDISD_Msk    /*!< Endpoint disabled interrupt */
+#define USB_OTG_DOEPINT_STUP_Pos                 (3U)                          
+#define USB_OTG_DOEPINT_STUP_Msk                 (0x1U << USB_OTG_DOEPINT_STUP_Pos) /*!< 0x00000008 */
+#define USB_OTG_DOEPINT_STUP                     USB_OTG_DOEPINT_STUP_Msk      /*!< SETUP phase done */
+#define USB_OTG_DOEPINT_OTEPDIS_Pos              (4U)                          
+#define USB_OTG_DOEPINT_OTEPDIS_Msk              (0x1U << USB_OTG_DOEPINT_OTEPDIS_Pos) /*!< 0x00000010 */
+#define USB_OTG_DOEPINT_OTEPDIS                  USB_OTG_DOEPINT_OTEPDIS_Msk   /*!< OUT token received when endpoint disabled */
+#define USB_OTG_DOEPINT_B2BSTUP_Pos              (6U)                          
+#define USB_OTG_DOEPINT_B2BSTUP_Msk              (0x1U << USB_OTG_DOEPINT_B2BSTUP_Pos) /*!< 0x00000040 */
+#define USB_OTG_DOEPINT_B2BSTUP                  USB_OTG_DOEPINT_B2BSTUP_Msk   /*!< Back-to-back SETUP packets received */
+#define USB_OTG_DOEPINT_NYET_Pos                 (14U)                         
+#define USB_OTG_DOEPINT_NYET_Msk                 (0x1U << USB_OTG_DOEPINT_NYET_Pos) /*!< 0x00004000 */
+#define USB_OTG_DOEPINT_NYET                     USB_OTG_DOEPINT_NYET_Msk      /*!< NYET interrupt */
 
 #endif
