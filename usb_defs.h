@@ -745,4 +745,8 @@ typedef struct
 #define DATA2_DPID 0x1
 #define MDATA_DPID 0x3
 
+/* USB receive FIFO address */
+#define USB_OTG_DFIFO_ADDR (USB_OTG_FS_PERIPH_BASE + 0x1000)
+#define USB_OTG_DFIFO ((volatile uint32_t *) USB_OTG_DFIFO_ADDR)
+
 #endif

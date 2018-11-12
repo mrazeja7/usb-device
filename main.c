@@ -152,6 +152,11 @@ void usb_enum_done()
     displayText("ENUMDNE complete", 16, 0);	
 }
 
+void receive_setup(volatile uint32_t *data)
+{
+    // https://www.beyondlogic.org/usbnutshell/usb6.shtml#SetupPacket
+}
+
 void usb_receive()
 {
     // 29.17.6
@@ -169,11 +174,19 @@ void usb_receive()
     
     if (bytecount > 0)
     {
+        // RX FIFO is at USB_base + 0x1000, pg 958 in ref guide
+        // https://community.st.com/s/question/0D50X00009Xkf0SSAR/usb-host-channel-interrupt-register-is-always-zero-after-a-transaction
+        uint8_t wordcount = (bytecount + 3) / 4;
+        volatile uint32_t *rxfifo = USB_OTG_DFIFO;
         // 4b - setup packet pattern
         if (pktsts == PKTSTS_SETUP && bytecount == 0x008 && epnum == 0 && dpid == 0)
         {
-            // RX FIFO is at USB_base + 0x1000, pg 958 in ref guide
-            displayText("SETUP ready to recv", 19, 0);	
+            volatile uint32_t data[2];
+            for (int i = 0; i < wordcount; ++i)
+                data[i] = rxfifo[i];
+            receive_setup(data);
+//            displayText("SETUP ready to recv", 19, 0);	
+//            displayNumber( (uint16_t*) &bytecount, 0);
         }
     }
     // 5
