@@ -132,8 +132,8 @@ void usb_reset()
     
     // ??? DIEPTXF0_HNPTXFSIZ is the only register I found with a zero in its name ???
     // http://www.disca.upv.es/aperles/arm_cortex_m3/llibre/st/STM32F439xx_User_Manual/stm32f4xx__hal__pcd__ex_8c_source.html - LINE 108, slightly changed
-	USB_OTG_FS->DIEPTXF0_HNPTXFSIZ = (256 << USB_OTG_TX0FD_Pos);
-	USB_OTG_FS->DIEPTXF0_HNPTXFSIZ |= 256; // what is this?
+	USB_OTG_FS->DIEPTXF0_HNPTXFSIZ = (256U << USB_OTG_TX0FD_Pos);
+	//USB_OTG_FS->DIEPTXF0_HNPTXFSIZ |= 256U; // what is this?
     
 	//4.
     USB_OTG_OUT_ENDPOINT0->DOEPTSIZ |= USB_OTG_DOEPTSIZ_STUPCNT_0 | USB_OTG_DOEPTSIZ_STUPCNT_1; // 0b11
@@ -147,7 +147,9 @@ void usb_enum_done()
     // 29.17.5
     // enum speed is known as this is a USB_FS device
     // MPSIZ should be set to 00 for 64 bytes, therefore no need to touch it
-    
+  
+    // 2
+    USB_OTG_IN_ENDPOINT0->DIEPCTL |= ~(USB_OTG_DIEPCTL_MPSIZ & 0x3);
     USB_OTG_FS->GINTSTS |= USB_OTG_GINTSTS_ENUMDNE;
     displayText("ENUMDNE complete", 16, 0);	
 }
@@ -175,6 +177,17 @@ static __IO uint8_t lastbReq = 0x0;
 static __IO uint8_t wLength = 0x0;
 static __IO uint32_t lastbReqVal = 0x0;
 
+void enable_in_ep() // figure this out
+{
+    USB_OTG_IN_ENDPOINT0->DIEPCTL &= ~USB_OTG_DIEPCTL_TXFNUM;
+    USB_OTG_IN_ENDPOINT0->DIEPCTL |= USB_OTG_DIEPCTL_CNAK;
+}
+
+void sendData(uint8_t * data, uint16_t len)
+{
+    
+}
+
 void sendDescriptor()
 {
     ///// TXFNUM
@@ -190,10 +203,10 @@ void sendDescriptor()
 void parseDescriptor(/*uint16_t wValue, uint16_t wIndex, uint16_t wLength*/)
 {
 //    char str[20];
-//    uint8_t len = sprintf(str, "GET_DESC %02X %02X %02X", wValue, wIndex, wLength);
+//    uint8_t len = sprintf(str, "GET_DESC %02X %02X", lastbReqVal, wLength);
 //    displayText((uint8_t*) str, len, 0);
     
-    ///// STUP
+    USB_OTG_OUT_ENDPOINT0->DOEPINT |= USB_OTG_DOEPINT_STUP;
   
     // send descriptor at this point
     sendDescriptor();
@@ -234,6 +247,8 @@ void receive_setup(volatile uint32_t *data)
                             lastbReq = bRequest;
                             lastbReqVal = wValue;
                             break;
+                        default:
+                            displayNumber((uint16_t*) &bRequest, 1);
                     }
             }
     }
