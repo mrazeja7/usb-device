@@ -185,7 +185,21 @@ void enable_in_ep() // figure this out
 
 void sendData(uint8_t * data, uint16_t len)
 {
+    USB_OTG_IN_ENDPOINT0->DIEPCTL &= ~USB_OTG_DIEPCTL_TXFNUM;
+    // pg 1018, https://github.com/01org/zephyr/blob/master/ext/hal/st/stm32cube/stm32l4xx/drivers/src/stm32l4xx_ll_usb.c line ~646
+    USB_OTG_IN_ENDPOINT0->DIEPTSIZ |= (USB_OTG_DIEPTSIZ_PKTCNT & 0x2); // fixed size of 2 packets, TODO
+    USB_OTG_IN_ENDPOINT0->DIEPCTL |= USB_OTG_DIEPCTL_EPENA | USB_OTG_DIEPCTL_CNAK;
     
+    // fill TX FIFO here?
+    // TX FIFO is uint32_t*, desc is byte array
+    uint16_t steps = (len + 3) / 4;
+    uint8_t *dataptr = data;
+    for (uint16_t i = 0; i < steps; ++i) // 18 bytes?
+    {
+        USB_OTG_TX_DFIFO[i] = *((uint32_t*) dataptr);
+        dataptr += 4;
+    }
+    // untested
 }
 
 void sendDescriptor()
@@ -215,7 +229,11 @@ void parseDescriptor(/*uint16_t wValue, uint16_t wIndex, uint16_t wLength*/)
     lastbReq = 0x0; 
     lastbReqVal = 0x0;
     
-    ///// XFRC
+    ///// DOEPINT XFRC
+    
+    // wait for transfer complete intterupt?
+//    while (!(USB_OTG_IN_ENDPOINT0->DIEPINT & USB_OTG_DIEPINT_XFRC));
+//    USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_XFRC;
 }
 
 void receive_setup(volatile uint32_t *data)
@@ -283,7 +301,7 @@ void usb_receive()
         if (pktsts == PKTSTS_SETUP && bytecount == 0x008 && epnum == 0 && dpid == 0)
         {
             volatile uint32_t data[2];
-            for (int i = 0; i < wordcount; ++i)
+            for (uint16_t i = 0; i < wordcount; ++i)
                 data[i] = rxfifo[i];
             receive_setup(data);
         }
