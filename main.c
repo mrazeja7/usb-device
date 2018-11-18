@@ -128,12 +128,12 @@ void usb_reset()
     USBD_FS->DIEPMSK |= USB_OTG_DIEPMSK_XFRCM | USB_OTG_DIEPMSK_TOM;
     
     // 3
-    USB_OTG_FS->GRXFSIZ = 256; // min 16, max 256  
+    USB_OTG_FS->GRXFSIZ = 256U; // min 16, max 256  
     
     // ??? DIEPTXF0_HNPTXFSIZ is the only register I found with a zero in its name ???
     // http://www.disca.upv.es/aperles/arm_cortex_m3/llibre/st/STM32F439xx_User_Manual/stm32f4xx__hal__pcd__ex_8c_source.html - LINE 108, slightly changed
-	USB_OTG_FS->DIEPTXF0_HNPTXFSIZ = (256U << USB_OTG_TX0FD_Pos);
-	//USB_OTG_FS->DIEPTXF0_HNPTXFSIZ |= 256U; // what is this?
+	USB_OTG_FS->DIEPTXF0_HNPTXFSIZ = (256U << 16);
+	USB_OTG_FS->DIEPTXF0_HNPTXFSIZ |= 256U; // TX FIFO start address right after RX FIFO - USB_OTG_FS->GRXFSIZ
     
 	//4.
     USB_OTG_OUT_ENDPOINT0->DOEPTSIZ |= USB_OTG_DOEPTSIZ_STUPCNT_0 | USB_OTG_DOEPTSIZ_STUPCNT_1; // 0b11
