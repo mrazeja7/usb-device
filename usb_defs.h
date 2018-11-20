@@ -823,4 +823,39 @@ enum {
 #define USB_OTG_DOEPINT_NYET_Msk                 (0x1U << USB_OTG_DOEPINT_NYET_Pos) /*!< 0x00004000 */
 #define USB_OTG_DOEPINT_NYET                     USB_OTG_DOEPINT_NYET_Msk      /*!< NYET interrupt */
 
+/********************  Bit definition for USB_OTG_DIEPINT register  ********************/
+#define USB_OTG_DIEPINT_XFRC_Pos                 (0U)                          
+#define USB_OTG_DIEPINT_XFRC_Msk                 (0x1U << USB_OTG_DIEPINT_XFRC_Pos) /*!< 0x00000001 */
+#define USB_OTG_DIEPINT_XFRC                     USB_OTG_DIEPINT_XFRC_Msk      /*!< Transfer completed interrupt */
+#define USB_OTG_DIEPINT_EPDISD_Pos               (1U)                          
+#define USB_OTG_DIEPINT_EPDISD_Msk               (0x1U << USB_OTG_DIEPINT_EPDISD_Pos) /*!< 0x00000002 */
+#define USB_OTG_DIEPINT_EPDISD                   USB_OTG_DIEPINT_EPDISD_Msk    /*!< Endpoint disabled interrupt */
+#define USB_OTG_DIEPINT_TOC_Pos                  (3U)                          
+#define USB_OTG_DIEPINT_TOC_Msk                  (0x1U << USB_OTG_DIEPINT_TOC_Pos) /*!< 0x00000008 */
+#define USB_OTG_DIEPINT_TOC                      USB_OTG_DIEPINT_TOC_Msk       /*!< Timeout condition */
+#define USB_OTG_DIEPINT_ITTXFE_Pos               (4U)                          
+#define USB_OTG_DIEPINT_ITTXFE_Msk               (0x1U << USB_OTG_DIEPINT_ITTXFE_Pos) /*!< 0x00000010 */
+#define USB_OTG_DIEPINT_ITTXFE                   USB_OTG_DIEPINT_ITTXFE_Msk    /*!< IN token received when TxFIFO is empty */
+#define USB_OTG_DIEPINT_INEPNE_Pos               (6U)                          
+#define USB_OTG_DIEPINT_INEPNE_Msk               (0x1U << USB_OTG_DIEPINT_INEPNE_Pos) /*!< 0x00000040 */
+#define USB_OTG_DIEPINT_INEPNE                   USB_OTG_DIEPINT_INEPNE_Msk    /*!< IN endpoint NAK effective */
+#define USB_OTG_DIEPINT_TXFE_Pos                 (7U)                          
+#define USB_OTG_DIEPINT_TXFE_Msk                 (0x1U << USB_OTG_DIEPINT_TXFE_Pos) /*!< 0x00000080 */
+#define USB_OTG_DIEPINT_TXFE                     USB_OTG_DIEPINT_TXFE_Msk      /*!< Transmit FIFO empty */
+#define USB_OTG_DIEPINT_TXFIFOUDRN_Pos           (8U)                          
+#define USB_OTG_DIEPINT_TXFIFOUDRN_Msk           (0x1U << USB_OTG_DIEPINT_TXFIFOUDRN_Pos) /*!< 0x00000100 */
+#define USB_OTG_DIEPINT_TXFIFOUDRN               USB_OTG_DIEPINT_TXFIFOUDRN_Msk /*!< Transmit Fifo Underrun */
+#define USB_OTG_DIEPINT_BNA_Pos                  (9U)                          
+#define USB_OTG_DIEPINT_BNA_Msk                  (0x1U << USB_OTG_DIEPINT_BNA_Pos) /*!< 0x00000200 */
+#define USB_OTG_DIEPINT_BNA                      USB_OTG_DIEPINT_BNA_Msk       /*!< Buffer not available interrupt */
+#define USB_OTG_DIEPINT_PKTDRPSTS_Pos            (11U)                         
+#define USB_OTG_DIEPINT_PKTDRPSTS_Msk            (0x1U << USB_OTG_DIEPINT_PKTDRPSTS_Pos) /*!< 0x00000800 */
+#define USB_OTG_DIEPINT_PKTDRPSTS                USB_OTG_DIEPINT_PKTDRPSTS_Msk /*!< Packet dropped status */
+#define USB_OTG_DIEPINT_BERR_Pos                 (12U)                         
+#define USB_OTG_DIEPINT_BERR_Msk                 (0x1U << USB_OTG_DIEPINT_BERR_Pos) /*!< 0x00001000 */
+#define USB_OTG_DIEPINT_BERR                     USB_OTG_DIEPINT_BERR_Msk      /*!< Babble error interrupt */
+#define USB_OTG_DIEPINT_NAK_Pos                  (13U)                         
+#define USB_OTG_DIEPINT_NAK_Msk                  (0x1U << USB_OTG_DIEPINT_NAK_Pos) /*!< 0x00002000 */
+#define USB_OTG_DIEPINT_NAK                      USB_OTG_DIEPINT_NAK_Msk       /*!< NAK interrupt */
+
 #endif

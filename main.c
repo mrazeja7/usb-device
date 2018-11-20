@@ -183,7 +183,7 @@ void enable_in_ep() // figure this out
     USB_OTG_IN_ENDPOINT0->DIEPCTL |= USB_OTG_DIEPCTL_CNAK;
 }
 
-void sendData(uint8_t * data, uint16_t len)
+void sendData(volatile uint8_t * data, volatile uint16_t len)
 {
     USB_OTG_IN_ENDPOINT0->DIEPCTL &= ~USB_OTG_DIEPCTL_TXFNUM;
     // pg 1018, https://github.com/01org/zephyr/blob/master/ext/hal/st/stm32cube/stm32l4xx/drivers/src/stm32l4xx_ll_usb.c line ~646
@@ -193,7 +193,7 @@ void sendData(uint8_t * data, uint16_t len)
     // fill TX FIFO here?
     // TX FIFO is uint32_t*, desc is byte array
     uint16_t steps = (len + 3) / 4;
-    uint8_t *dataptr = data;
+    volatile uint8_t *dataptr = data;
     for (uint16_t i = 0; i < steps; ++i) // 18 bytes?
     {
         USB_OTG_TX_DFIFO[i] = *((uint32_t*) dataptr);
@@ -208,7 +208,7 @@ void sendDescriptor()
     switch(lastbReqVal >> 8) // wValue
     {
         case device_desc:
-            // sendData(device_descriptor);
+            sendData(device_descriptor, 18);
             displayText("DEV DESC", 8, 0);
             break;
     }
@@ -231,7 +231,7 @@ void parseDescriptor(/*uint16_t wValue, uint16_t wIndex, uint16_t wLength*/)
     
     ///// DOEPINT XFRC
     
-    // wait for transfer complete intterupt?
+    // wait for transfer complete intterupt? - doesn't happen
 //    while (!(USB_OTG_IN_ENDPOINT0->DIEPINT & USB_OTG_DIEPINT_XFRC));
 //    USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_XFRC;
 }
@@ -341,6 +341,32 @@ void OTG_FS_IRQHandler(void)
         if (daint & USB_OTG_DAINT_OEPINT) // setup data transfer complete, handle last setup packet ///// 1 <<?
         {            
             parseDescriptor();
+        }
+    }
+    
+    if (gintsts & USB_OTG_GINTSTS_IEPINT)
+    {
+        if (daint & (USB_OTG_DAINT_IEPINT & 0x1)) // IN endpoint 0, pg 995
+        {
+            uint32_t iepint = USB_OTG_IN_ENDPOINT0->DIEPINT;
+            
+            if (iepint & USB_OTG_DIEPINT_XFRC) // transfer complete
+            {
+				USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_XFRC;
+                displayText("IN0 IEPINT XFRC", 15, 0);
+			}
+            
+			if (iepint & USB_OTG_DIEPINT_TOC) // timeout
+            {
+				USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_TOC;
+                displayText("IN0 IEPINT TOC", 14, 0);
+			}
+            
+			if (iepint & USB_OTG_DIEPINT_TXFE) // TX FIFO empty
+            {
+				USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_TXFE;
+                displayText("IN0 IEPINT TXFE", 15, 0);
+			}	
         }
     }
     
