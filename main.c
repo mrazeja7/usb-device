@@ -98,6 +98,7 @@ void usb_core_init()
 	// 29.17.3
     // 1
     USBD_FS->DCFG |= (USB_OTG_DCFG_DSPD & 0x3); // Full speed
+    USBD_FS->DCFG &= ~USB_OTG_DCFG_DAD; // reset device address - set address fails otherwise
     
     // 2
 	USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_USBRST | USB_OTG_GINTMSK_ENUMDNEM | USB_OTG_GINTMSK_ESUSPM 
@@ -158,7 +159,7 @@ uint8_t device_descriptor[18] = // 18 bytes
 {
     18U, // bLength
     0x1, // bDescriptorType
-    0x2,0x0, // bcdUSB
+    0x01,0x10, // bcdUSB
     0x0, // bDeviceClass
     0x0, // bDeviceSubClass
     0x0, // bDeviceProtocol
@@ -218,12 +219,10 @@ void sendData(volatile uint8_t * data, volatile uint16_t len)
         USB_OTG_TX_DFIFO[i] = *((uint32_t*) dataptr);
         dataptr += 4;
     }
-    // untested
 }
 
 void sendDescriptor()
 {
-    ///// TXFNUM
     switch(lastbReqVal >> 8) // wValue
     {
         case device_desc:
@@ -238,7 +237,7 @@ void sendDescriptor()
     }
 }
 
-void parseDescriptor(/*uint16_t wValue, uint16_t wIndex, uint16_t wLength*/)
+void processSetup()
 {
 //    char str[20];
 //    uint8_t len = sprintf(str, "GET_DESC %02X %02X", lastbReqVal, wLength);
@@ -246,15 +245,22 @@ void parseDescriptor(/*uint16_t wValue, uint16_t wIndex, uint16_t wLength*/)
     
     USB_OTG_OUT_ENDPOINT0->DOEPINT |= USB_OTG_DOEPINT_STUP;
   
-    // send descriptor at this point
-    sendDescriptor();
+    
+    switch (lastbReq)
+    {
+        case GET_DESCRIPTOR: // send descriptor at this point
+            sendDescriptor();
+            break;
+        case SET_ADDRESS:
+//            setAddr();
+//            sendData(0, 0); // empty data packet
+            break;
+    }
     
     // reset last request information as this one is done
     lastbReq = 0x0; 
     lastbReqVal = 0x0;
-    
-    ///// DOEPINT XFRC
-    
+        
     // wait for transfer complete intterupt? - doesn't happen
 //    while (!(USB_OTG_IN_ENDPOINT0->DIEPINT & USB_OTG_DIEPINT_XFRC));
 //    USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_XFRC;
@@ -284,7 +290,7 @@ void receive_setup(volatile uint32_t *data)
     
     char str[20];
     //uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %u", recipient, type, direction, bRequest, wValue);
-    uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %u", wLength, type, direction, bRequest, wValue);
+    uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %02X", wLength, type, direction, bRequest, wValue);
     displayText((uint8_t*) str, len, 0);
     
     switch(recipient)
@@ -296,12 +302,16 @@ void receive_setup(volatile uint32_t *data)
                     switch(bRequest)
                     {
                         case GET_DESCRIPTOR: // 0x6
-                            lastbReq = bRequest;
+                            lastbReq = GET_DESCRIPTOR;
                             lastbReqVal = wValue;
                             break;
-                        case SET_ADDRESS:
-                            setAddr(wValue);                            
-                            break;                      
+                        case SET_ADDRESS: // 0x5
+                            setAddr(wValue);
+                            sendData(0, 0);
+                            break;    
+                        case GET_STATUS: // 0x0
+                            displayText("GET_STATUS", 10, 0);
+                            break;
                         default:
                             displayText("OTHER bREQ", 10, 0); //displayNumber((uint16_t*) &bRequest, 1);
                             break;
@@ -386,7 +396,7 @@ void OTG_FS_IRQHandler(void)
     {
         if (daint & USB_OTG_DAINT_OEPINT) // setup data transfer complete, handle last setup packet ///// 1 <<?
         {            
-            parseDescriptor();
+            processSetup();
         }
     }
     
