@@ -172,6 +172,25 @@ uint8_t device_descriptor[18] = // 18 bytes
     0x1 // bNumConfigurations
 };
 
+// https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/usb-device-descriptors
+//uint8_t device_descriptor[18] = // 18 bytes
+//{
+//    18U, // bLength
+//    0x1, // bDescriptorType
+//    0x2,0x0, // bcdUSB
+//    0xEF, // bDeviceClass
+//    0x02, // bDeviceSubClass
+//    0x01, // bDeviceProtocol
+//    0x40, // bMaxPacketSize0      
+//    0x04,0x5E, // idVendor - https://www.the-sz.com/products/usbid/index.php?v=&p=&n=STMicroelectronics
+//    0x07,0x28, // idProduct - don't care?
+//    0x1,0x0, // bcdDevice - don't care?
+//    0x0, // iManufacturer - no strings yet
+//    0x0, // iProduct - no strings yet
+//    0x0, // iSerialNumber - no strings yet
+//    0x1 // bNumConfigurations
+//};
+
 // need to remember the latest bRequest (multiple SETUP packets sent back to back)
 static __IO uint8_t lastbReq = 0x0;
 static __IO uint8_t wLength = 0x0;
@@ -187,7 +206,7 @@ void sendData(volatile uint8_t * data, volatile uint16_t len)
 {
     USB_OTG_IN_ENDPOINT0->DIEPCTL &= ~USB_OTG_DIEPCTL_TXFNUM;
     // pg 1018, https://github.com/01org/zephyr/blob/master/ext/hal/st/stm32cube/stm32l4xx/drivers/src/stm32l4xx_ll_usb.c line ~646
-    USB_OTG_IN_ENDPOINT0->DIEPTSIZ |= (USB_OTG_DIEPTSIZ_PKTCNT & 0x2); // fixed size of 2 packets, TODO
+    USB_OTG_IN_ENDPOINT0->DIEPTSIZ = (USB_OTG_DIEPTSIZ_PKTCNT & 0x2) | len; // fixed size of 2 packets, TODO
     USB_OTG_IN_ENDPOINT0->DIEPCTL |= USB_OTG_DIEPCTL_EPENA | USB_OTG_DIEPCTL_CNAK;
     
     // fill TX FIFO here?
@@ -209,7 +228,12 @@ void sendDescriptor()
     {
         case device_desc:
             sendData(device_descriptor, 18);
-            displayText("DEV DESC", 8, 0);
+            displayText("DEV DESC sent", 13, 0);
+            break;
+        default:
+//            char str[20];
+//            uint8_t len = sprintf(str, "OTHER DESC %0X", lastbReqVal);
+//            displayText((uint8_t*) str, len, 0);
             break;
     }
 }
@@ -236,6 +260,15 @@ void parseDescriptor(/*uint16_t wValue, uint16_t wIndex, uint16_t wLength*/)
 //    USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_XFRC;
 }
 
+// set address doesn't work yet, needs to send status IN packet - pg 1040
+void setAddr(uint16_t val)
+{
+    USBD_FS->DCFG |= (val << 4) & 0x7F;
+    char str[20];
+    uint8_t len = sprintf(str, "SET_ADDR %02X", val);
+    displayText((uint8_t*) str, len, 0);
+}
+
 void receive_setup(volatile uint32_t *data)
 {
     // https://www.beyondlogic.org/usbnutshell/usb6.shtml#SetupPacket
@@ -250,7 +283,8 @@ void receive_setup(volatile uint32_t *data)
     uint8_t direction = (bmRequestType & 0x80) >> 7; // D7
     
     char str[20];
-    uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %u", recipient, type, direction, bRequest, wValue);
+    //uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %u", recipient, type, direction, bRequest, wValue);
+    uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %u", wLength, type, direction, bRequest, wValue);
     displayText((uint8_t*) str, len, 0);
     
     switch(recipient)
@@ -265,10 +299,22 @@ void receive_setup(volatile uint32_t *data)
                             lastbReq = bRequest;
                             lastbReqVal = wValue;
                             break;
+                        case SET_ADDRESS:
+                            setAddr(wValue);                            
+                            break;                      
                         default:
-                            displayNumber((uint16_t*) &bRequest, 1);
+                            displayText("OTHER bREQ", 10, 0); //displayNumber((uint16_t*) &bRequest, 1);
+                            break;
                     }
+                    break;
+                default:
+                    displayText("OTHER TYPE", 10, 0);
+                    break;
             }
+            break;
+        default:
+            displayText("OTHER RECP", 10, 0);
+            break;
     }
 }
 
