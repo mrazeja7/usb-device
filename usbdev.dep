@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
     <fileVersion>4</fileVersion>
-    <fileChecksum>2274921380</fileChecksum>
+    <fileChecksum>3182369957</fileChecksum>
     <configuration>
         <name>Debug</name>
         <outputs>
@@ -269,6 +269,7 @@
             <file>$PROJ_DIR$\lib\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_usart.c</file>
             <file>$PROJ_DIR$\lib\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_sdio.c</file>
             <file>$PROJ_DIR$\lib\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_rtc.c</file>
+            <file>$PROJ_DIR$\usb_descriptors.h</file>
         </outputs>
         <file>
             <name>[ROOT_NODE]</name>
@@ -1437,10 +1438,6 @@
             <name>$PROJ_DIR$\main.c</name>
             <outputs>
                 <tool>
-                    <name>ICCARM</name>
-                    <file> 196</file>
-                </tool>
-                <tool>
                     <name>__cstat</name>
                     <file> 93</file>
                 </tool>
@@ -1452,11 +1449,7 @@
             <inputs>
                 <tool>
                     <name>ICCARM</name>
-                    <file> 153 168 159 164 157 158 127 65 234 210 172 147 143 207 163 206 142 240 223 44 76 69 37 84 85 198 192 122 66 239 104 183 124 217 131 117 181 173 138 108 135 88 119 144 152 148 165 160 67 89</file>
-                </tool>
-                <tool>
-                    <name>BICOMP</name>
-                    <file> 37 138 158 65 159 127 104 157 160 223 192 131 164 148 144 89 142 76 85 66 124 181 135 153 207 147 143 119 88 152 67 168 240 44 69 84 198 122 239 183 217 117 173 108 206 172 163 234 210 165</file>
+                    <file> 153 168 159 164 157 158 127 65 234 210 172 147 143 207 163 206 142 240 223 44 76 69 37 84 85 198 192 122 66 239 104 183 124 217 131 117 181 173 138 108 135 88 119 144 152 148 165 160 67 89 264</file>
                 </tool>
             </inputs>
         </file>
