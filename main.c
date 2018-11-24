@@ -99,7 +99,7 @@ void usb_core_init()
 	// 29.17.3
     // 1
     USBD_FS->DCFG |= (USB_OTG_DCFG_DSPD & 0x3); // Full speed
-    USBD_FS->DCFG &= ~USB_OTG_DCFG_DAD; // reset device address - set address fails otherwise
+    //USBD_FS->DCFG &= ~USB_OTG_DCFG_DAD; // reset device address - set address fails otherwise
     
     // 2
 	USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_USBRST | USB_OTG_GINTMSK_ENUMDNEM | USB_OTG_GINTMSK_ESUSPM 
@@ -135,10 +135,13 @@ void usb_reset()
     // ??? DIEPTXF0_HNPTXFSIZ is the only register I found with a zero in its name ???
     // http://www.disca.upv.es/aperles/arm_cortex_m3/llibre/st/STM32F439xx_User_Manual/stm32f4xx__hal__pcd__ex_8c_source.html - LINE 108, slightly changed
 	USB_OTG_FS->DIEPTXF0_HNPTXFSIZ = (256U << 16);
-	USB_OTG_FS->DIEPTXF0_HNPTXFSIZ |= 256U; // TX FIFO start address right after RX FIFO - USB_OTG_FS->GRXFSIZ
+	USB_OTG_FS->DIEPTXF0_HNPTXFSIZ |= 128U; // TX FIFO start address right after RX FIFO - USB_OTG_FS->GRXFSIZ
     
 	//4.
     USB_OTG_OUT_ENDPOINT0->DOEPTSIZ |= USB_OTG_DOEPTSIZ_STUPCNT_0 | USB_OTG_DOEPTSIZ_STUPCNT_1; // 0b11
+    
+    USBD_FS->DCFG &= ~USB_OTG_DCFG_DAD;
+	USBD_FS->DCFG |= USB_OTG_DCFG_DSPD;
     
     USB_OTG_FS->GINTSTS |= USB_OTG_GINTSTS_USBRST;
 //    displayText("USB reset complete", 18, 0);	
@@ -173,11 +176,15 @@ void sendData(volatile uint8_t * data, volatile uint16_t len)
     // TX FIFO is uint32_t*, desc is byte array
     uint16_t steps = (len + 3) / 4;
     volatile uint8_t *dataptr = data;
-    for (uint16_t i = 0; i < steps; ++i) // 18 bytes?
+    for (uint16_t i = 0; i < steps; ++i) // 18 or 34 bytes, still works
     {
         USB_OTG_TX_DFIFO[i] = *((uint32_t*) dataptr);
         dataptr += 4;
     }
+    
+//    char str[20];
+//    uint8_t l = sprintf(str, "%u %u", steps, len);
+//    displayText((uint8_t*) str, l, 0);
 //    if (len == 0)
 //        displayText("sent empty", 10, 0);
 }
@@ -189,16 +196,19 @@ void sendDescriptor()
     switch(lastbReqVal >> 8) // wValue
     {
         case device_desc:
-            sendData(device_descriptor, 18);
-//            sendData(vcom_device_descriptor_data, 18);
+            sendData(razer_descriptor, DEV_DESC_SIZE);
+//            sendData(mouse_descriptor, DEV_DESC_SIZE);
             displayText("DEV DESC sent", 13, 0);
             break;
         case configuration_desc:
-            len = sprintf(str, "CONF DESC");
-            displayText((uint8_t*) str, len, 0);
+            sendData(config_descriptor_set, CONF_DESC_SET_SIZE);
+            displayText("CONF DESC sent", 14, 0);
+            break;
+        case string_desc:
+            displayText("STRING DESC", 11, 0);
             break;
         default:            
-            len = sprintf(str, "OTHER DESC %0X", lastbReqVal);
+            len = sprintf(str, "OTHER DESC %0X", lastbReqVal >> 8);
             displayText((uint8_t*) str, len, 0);
             break;
     }
@@ -343,6 +353,9 @@ void usb_receive()
                 data[i] = rxfifo[i];
             receive_setup(data);
         }
+        else 
+            displayText("OTHER DATA", 10, 0);
+          
     }
     // 4c - setup phase done
     if (pktsts == PKTSTS_SETUP_DONE && bytecount == 0 && epnum == 0) // don't care about dpid value
@@ -393,6 +406,7 @@ void OTG_FS_IRQHandler(void)
             if (iepint & USB_OTG_DIEPINT_XFRC) // transfer complete
             {
 				USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_XFRC;
+                ///// empty out
                 displayText("IN0 IEPINT XFRC", 15, 0);
 			}
             
@@ -432,6 +446,5 @@ int main()
     NVIC_Init(&NVIC_InitStructure);
     
     while(1);
-    // sometimes exits during debugging before receiving ENUMDNE
 //    return 0;
 }
