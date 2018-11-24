@@ -206,6 +206,7 @@ void sendDescriptor()
             break;
         case string_desc:
             displayText("STRING DESC", 11, 0);
+            // decode which string to send and do it
             break;
         default:            
             len = sprintf(str, "OTHER DESC %0X", lastbReqVal >> 8);
@@ -215,11 +216,7 @@ void sendDescriptor()
 }
 
 void processSetup()
-{
-//    char str[20];
-//    uint8_t len = sprintf(str, "GET_DESC %02X %02X", lastbReqVal, wLength);
-//    displayText((uint8_t*) str, len, 0);
-    
+{   
     USB_OTG_OUT_ENDPOINT0->DOEPINT |= USB_OTG_DOEPINT_STUP;
   
     if (!set)
@@ -254,7 +251,6 @@ void processSetup()
 //    USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_XFRC;
 }
 
-// set address doesn't work yet, needs to send status IN packet - pg 1040
 void setAddr(uint16_t val)
 {
     USBD_FS->DCFG |= ((val & 0x7F) << 4);
@@ -281,7 +277,6 @@ void receive_setup(volatile uint32_t *data)
     uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %02X", wLength, type, direction, bRequest, wValue);
     displayText((uint8_t*) str, len, 0);
     
-    // FF 00 01 06 200 - configuration descriptor
     switch(recipient)
     {
         case device:
@@ -345,10 +340,10 @@ void usb_receive()
         // https://community.st.com/s/question/0D50X00009Xkf0SSAR/usb-host-channel-interrupt-register-is-always-zero-after-a-transaction
         uint8_t wordcount = (bytecount + 3) / 4;
         volatile uint32_t *rxfifo = USB_OTG_RX_DFIFO;
+        volatile uint32_t data[3];
         // 4b - setup packet pattern
         if (pktsts == PKTSTS_SETUP && bytecount == 0x008 && epnum == 0 && dpid == 0)
         {
-            volatile uint32_t data[2];
             for (uint16_t i = 0; i < wordcount; ++i)
                 data[i] = rxfifo[i];
             receive_setup(data);
@@ -363,8 +358,8 @@ void usb_receive()
         // don't need to do anything here since the FIFO is already empty - interrupt should be fired
 //        displayText("SETUP DONE", 10, 0);
     }
-    else if (bytecount == 0)
-        displayText("OTHER 0BC", 9, 0);
+//    else if (bytecount == 0)
+//        displayText("OTHER 0BC", 9, 0);
     // 5
     USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_RXFLVLM;
 }
@@ -421,7 +416,7 @@ void OTG_FS_IRQHandler(void)
 				USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_TXFE;
                 displayText("IN0 IEPINT TXFE", 15, 0);
 			}	
-        }
+        }    
     }
     
     return; 

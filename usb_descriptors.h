@@ -10,6 +10,7 @@ uint8_t device_descriptor[DEV_DESC_SIZE] = // 18 bytes
     18U, // bLength
     0x1, // bDescriptorType
     0x01,0x10, // bcdUSB
+//    0x0,0x2, // USB 2.0
     0x0, // bDeviceClass
     0x0, // bDeviceSubClass
     0x0, // bDeviceProtocol
@@ -23,18 +24,19 @@ uint8_t device_descriptor[DEV_DESC_SIZE] = // 18 bytes
     0x1 // bNumConfigurations
 };
 
-uint8_t mouse_descriptor[DEV_DESC_SIZE] = // Logitech Mouse
+uint8_t mouse_descriptor[DEV_DESC_SIZE] = // generic mouse - https://github.com/obdev/v-usb/blob/master/usbdrv/USB-IDs-for-free.txt
 {
     18U, // bLength
     0x1, // bDescriptorType
     0x01,0x10, // bcdUSB
+//    0x0,0x2, // USB 2.0
     0x3, // bDeviceClass
     0x0, // bDeviceSubClass
     0x0, // bDeviceProtocol
     64U, // bMaxPacketSize0      
-    0x04,0x6D, // idVendor - https://www.the-sz.com/products/usbid/index.php?v=&p=&n=STMicroelectronics
-    0xC0,0x35, // idProduct - don't care?
-    0x0,0x1, // bcdDevice - don't care?
+    0xDA,0x27, // idVendor
+    0xC0,0x16, // idProduct
+    0x0,0x1, // bcdDevice
     0x1, // iManufacturer - no strings yet
     0x2, // iProduct - no strings yet
     0x3, // iSerialNumber - no strings yet
@@ -46,13 +48,14 @@ uint8_t razer_descriptor[DEV_DESC_SIZE] = // Razer Deathadder
     18U, // bLength
     0x1, // bDescriptorType
     0x01,0x10, // bcdUSB
+//    0x0,0x2, // USB 2.0
     0x3, // bDeviceClass
     0x0, // bDeviceSubClass
     0x0, // bDeviceProtocol
     64U, // bMaxPacketSize0      
-    0x32,0x15, // idVendor - https://www.the-sz.com/products/usbid/index.php?v=&p=&n=STMicroelectronics
-    0x43,0x00, // idProduct - don't care?
-    0x0,0x2, // bcdDevice - don't care?
+    0x32,0x15, // idVendor
+    0x43,0x00, // idProduct
+    0x0,0x2, // bcdDevice
     0x1, // iManufacturer - no strings yet
     0x2, // iProduct - no strings yet
     0x3, // iSerialNumber - no strings yet
@@ -88,20 +91,20 @@ uint8_t config_descriptor_set[CONF_DESC_SET_SIZE] =
     CONF_DESC_SET_SIZE, 0x0, // wTotalLength
     0x1, // bNumInterfaces
     0x1, // bConfigurationValue
-    0x4, // no string yet// iConfiguration
+    0x0, // no string yet// iConfiguration
     0x80, // bmAttributes
     100U, // bMaxPower - 200 mA
     
     // interface descriptor
     0x9, // bLength
     0x4, // bDescriptorType
-    0x0, // bInterfaceNumber
+    0x1, // bInterfaceNumber
     0x0, // bAlternateSetting
     0x1, // bNumEndpoints
     0x3, // bInterfaceClass - HID - needs a class specific descriptor TODO
     0x1, // bInterfaceSubClass
     0x2, // bInterfaceProtocol - mouse
-    0x5, // iInterface
+    0x0, // iInterface
     
     // HID class descriptor - from hid1_11.pdf, pg 22
     0x9, // bLength
