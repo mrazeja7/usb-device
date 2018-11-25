@@ -4,6 +4,11 @@
 
 #define DEV_DESC_SIZE 18U
 #define CONF_DESC_SET_SIZE 34U
+#define LANG_DESC_SIZE 4U
+#define VENDOR_DESC_SIZE 14U
+#define PRODUCT_DESC_SIZE 16U
+#define SN_DESC_SIZE 10U
+#define QUALIFIER_DESC_SIZE 10U
 
 uint8_t device_descriptor[DEV_DESC_SIZE] = // 18 bytes
 {
@@ -28,8 +33,8 @@ uint8_t mouse_descriptor[DEV_DESC_SIZE] = // generic mouse - https://github.com/
 {
     18U, // bLength
     0x1, // bDescriptorType
-    0x01,0x10, // bcdUSB
-//    0x0,0x2, // USB 2.0
+//    0x01,0x10, // bcdUSB
+    0x0,0x2, // USB 2.0
     0x3, // bDeviceClass
     0x0, // bDeviceSubClass
     0x0, // bDeviceProtocol
@@ -47,8 +52,8 @@ uint8_t razer_descriptor[DEV_DESC_SIZE] = // Razer Deathadder
 {
     18U, // bLength
     0x1, // bDescriptorType
-    0x01,0x10, // bcdUSB
-//    0x0,0x2, // USB 2.0
+//    0x01,0x10, // bcdUSB
+    0x0,0x2, // USB 2.0
     0x3, // bDeviceClass
     0x0, // bDeviceSubClass
     0x0, // bDeviceProtocol
@@ -122,6 +127,48 @@ uint8_t config_descriptor_set[CONF_DESC_SET_SIZE] =
     0x3, // bmAttributes - interrupt endpoint - ideal for a mouse
     0x8, 0x0, // wMaxPacketSize - 8 bytes is plenty
     0xA // bInterval - 10 ms
+};
+
+/* string descriptors https://www.beyondlogic.org/usbnutshell/usb5.shtml#StringDescriptors */
+uint8_t lang_descriptor[LANG_DESC_SIZE] = 
+{
+    0x4, // bLength
+    0x3, // bDescriptorType
+    0x9, 0x4 // wLANGID - English US
+};
+
+uint8_t vendor_string_descriptor[VENDOR_DESC_SIZE] = 
+{
+    14U, // bLength
+    0x3, // bDescriptorType
+    'V', 0x0, 'e', 0x0, 'n', 0x0, 'd', 0x0, 'o', 0x0, 'r',0x0
+};
+
+uint8_t product_string_descriptor[PRODUCT_DESC_SIZE] = 
+{
+    16U, // bLength
+    0x3, // bDescriptorType
+    'P', 0x0, 'r', 0x0, 'o', 0x0, 'd', 0x0, 'u', 0x0, 'c', 0x0, 't', 0x0
+};
+
+uint8_t sn_string_descriptor[SN_DESC_SIZE] =  // serial number
+{
+    10U, // bLength
+    0x3, // bDescriptorType
+    '1', 0x0, '3', 0x0, '3', 0x0, '7', 0x0
+};
+
+uint8_t qualifier_descriptor[QUALIFIER_DESC_SIZE] = // https://www.keil.com/pack/doc/mw/USB/html/_u_s_b__device__qualifier__descriptor.html
+{
+    10U, // bLength
+    0x6, // bDescriptorType
+    0x0, 0x2, // bcdUSB
+    0x0, // bDeviceClass
+    0x0, // bDeviceSubClass
+    0x0, // bDeviceProtocol
+    64U, // bMaxPacketSize0
+    0x1, // bNumConfigurations
+    0x0 // bReserved
 };
 
 #endif

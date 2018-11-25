@@ -189,6 +189,28 @@ void sendData(volatile uint8_t * data, volatile uint16_t len)
 //        displayText("sent empty", 10, 0);
 }
 
+void sendStringDesc(uint8_t index)
+{
+    switch (index)
+    {
+        case 0:
+            sendData(lang_descriptor, LANG_DESC_SIZE);
+            break;
+        case 1:
+            sendData(vendor_string_descriptor, VENDOR_DESC_SIZE);
+            break;
+        case 2:
+            sendData(product_string_descriptor, PRODUCT_DESC_SIZE);
+            break;
+        case 3:
+            sendData(sn_string_descriptor, SN_DESC_SIZE);
+            break;
+        default:
+            displayText("OTHER STRING DESC", 17, 0);
+            break;
+    }
+}
+
 void sendDescriptor()
 {
     char str[20];
@@ -206,7 +228,7 @@ void sendDescriptor()
             break;
         case string_desc:
             displayText("STRING DESC", 11, 0);
-            // decode which string to send and do it
+            sendStringDesc(lastbReqVal & 0xFF);
             break;
         default:            
             len = sprintf(str, "OTHER DESC %0X", lastbReqVal >> 8);
@@ -364,6 +386,12 @@ void usb_receive()
     USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_RXFLVLM;
 }
 
+void sendEmptyOut()
+{    
+    USB_OTG_OUT_ENDPOINT0->DOEPTSIZ |= (USB_OTG_DIEPTSIZ_PKTCNT & 0x40000) | 64U; // one packet of max size
+    USB_OTG_OUT_ENDPOINT0->DOEPCTL |= USB_OTG_DOEPCTL_EPENA | USB_OTG_DOEPCTL_CNAK;
+}
+
 void OTG_FS_IRQHandler(void) 
 {
     uint32_t gintsts = USB_OTG_FS->GINTSTS;
@@ -401,7 +429,7 @@ void OTG_FS_IRQHandler(void)
             if (iepint & USB_OTG_DIEPINT_XFRC) // transfer complete
             {
 				USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_XFRC;
-                ///// empty out
+                sendEmptyOut();
                 displayText("IN0 IEPINT XFRC", 15, 0);
 			}
             
