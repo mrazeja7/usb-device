@@ -218,8 +218,8 @@ void sendDescriptor()
     switch(lastbReqVal >> 8) // wValue
     {
         case device_desc:
-            sendData(razer_descriptor, DEV_DESC_SIZE);
-//            sendData(mouse_descriptor, DEV_DESC_SIZE);
+//            sendData(razer_descriptor, DEV_DESC_SIZE);
+            sendData(mouse_descriptor, DEV_DESC_SIZE);
             displayText("DEV DESC sent", 13, 0);
             break;
         case configuration_desc:
@@ -229,6 +229,10 @@ void sendDescriptor()
         case string_desc:
             displayText("STRING DESC", 11, 0);
             sendStringDesc(lastbReqVal & 0xFF);
+            break;
+        case device_qualifier_desc:
+            displayText("DEV QUAL DESC", 13, 0);
+//            sendData(qualifier_descriptor, QUALIFIER_DESC_SIZE);
             break;
         default:            
             len = sprintf(str, "OTHER DESC %0X", lastbReqVal >> 8);
@@ -318,6 +322,9 @@ void receive_setup(volatile uint32_t *data)
                             break;    
                         case GET_STATUS: // 0x0
                             displayText("GET_STATUS", 10, 0);
+                            break;
+                        case SET_CONFIGURATION:
+                            displayText("SET CONFIG", 10, 0);
                             break;
                         default:
                             displayText("OTHER bREQ", 10, 0); //displayNumber((uint16_t*) &bRequest, 1);
@@ -444,7 +451,7 @@ void OTG_FS_IRQHandler(void)
 				USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_TXFE;
                 displayText("IN0 IEPINT TXFE", 15, 0);
 			}	
-        }    
+        }
     }
     
     return; 

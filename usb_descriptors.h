@@ -29,7 +29,7 @@ uint8_t device_descriptor[DEV_DESC_SIZE] = // 18 bytes
     0x1 // bNumConfigurations
 };
 
-uint8_t mouse_descriptor[DEV_DESC_SIZE] = // generic mouse - https://github.com/obdev/v-usb/blob/master/usbdrv/USB-IDs-for-free.txt
+uint8_t mouse_descriptor[DEV_DESC_SIZE] = // Logitech mouse
 {
     18U, // bLength
     0x1, // bDescriptorType
@@ -39,9 +39,9 @@ uint8_t mouse_descriptor[DEV_DESC_SIZE] = // generic mouse - https://github.com/
     0x0, // bDeviceSubClass
     0x0, // bDeviceProtocol
     64U, // bMaxPacketSize0      
-    0xDA,0x27, // idVendor
-    0xC0,0x16, // idProduct
-    0x0,0x1, // bcdDevice
+    0x6D,0x04, // idVendor
+    0x2F,0xC5, // idProduct
+    0x0,0x2, // bcdDevice
     0x1, // iManufacturer - no strings yet
     0x2, // iProduct - no strings yet
     0x3, // iSerialNumber - no strings yet
@@ -61,9 +61,9 @@ uint8_t razer_descriptor[DEV_DESC_SIZE] = // Razer Deathadder
     0x32,0x15, // idVendor
     0x43,0x00, // idProduct
     0x0,0x2, // bcdDevice
-    0x1, // iManufacturer - no strings yet
-    0x2, // iProduct - no strings yet
-    0x3, // iSerialNumber - no strings yet
+    0x1, // iManufacturer string
+    0x2, // iProduct string
+    0x3, // iSerialNumber string
     0x1 // bNumConfigurations
 };
 
@@ -141,7 +141,7 @@ uint8_t vendor_string_descriptor[VENDOR_DESC_SIZE] =
 {
     14U, // bLength
     0x3, // bDescriptorType
-    'V', 0x0, 'e', 0x0, 'n', 0x0, 'd', 0x0, 'o', 0x0, 'r',0x0
+    'V', 0x0, 'e', 0x0, 'n', 0x0, 'd', 0x0, 'o', 0x0, 'r', 0x0
 };
 
 uint8_t product_string_descriptor[PRODUCT_DESC_SIZE] = 
