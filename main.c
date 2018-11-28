@@ -8,7 +8,7 @@
 #include "usb_descriptors.h"
 #include "inits.h"
 
-void usb_reset()
+void usb_reset() // ok
 {
     // 29.17.5
     
@@ -55,7 +55,7 @@ void usb_enum_done()
 
 // need to remember the latest bRequest (multiple SETUP packets sent back to back)
 static __IO uint8_t lastbReq = 0x0;
-static __IO uint8_t wLength = 0x0;
+static __IO uint8_t lastbReqLength = 0x0;
 static __IO uint32_t lastbReqVal = 0x0;
 static __IO uint32_t set = 0x0;
 
@@ -72,16 +72,17 @@ void sendEmptyOut()
     USB_OTG_OUT_ENDPOINT0->DOEPCTL |= USB_OTG_DOEPCTL_EPENA | USB_OTG_DOEPCTL_CNAK;
 }
 
-void sendData(volatile uint8_t * data, volatile uint16_t len)
+void sendData(volatile uint8_t * data, uint16_t len)
 {
     USB_OTG_IN_ENDPOINT0->DIEPCTL &= ~USB_OTG_DIEPCTL_TXFNUM;
     // pg 1018, https://github.com/01org/zephyr/blob/master/ext/hal/st/stm32cube/stm32l4xx/drivers/src/stm32l4xx_ll_usb.c line ~646
-    USB_OTG_IN_ENDPOINT0->DIEPTSIZ = (USB_OTG_DIEPTSIZ_PKTCNT & 0x80000) | len; // 2 packets, won't work if len > wLength or len > 128 TODO
+    uint32_t dataLen = (len > lastbReqLength) ? lastbReqLength : len; // data is longer than requested
+    USB_OTG_IN_ENDPOINT0->DIEPTSIZ = (USB_OTG_DIEPTSIZ_PKTCNT & 0x80000) | dataLen;
     USB_OTG_IN_ENDPOINT0->DIEPCTL |= USB_OTG_DIEPCTL_EPENA | USB_OTG_DIEPCTL_CNAK;
     
     // fill TX FIFO here?
     // TX FIFO is uint32_t*, desc is byte array
-    uint16_t steps = (len + 3) / 4;
+    uint16_t steps = (dataLen + 3) / 4;
     volatile uint8_t *dataptr = data;
     for (uint16_t i = 0; i < steps; ++i) // 18 or 34 bytes, still works
     {
@@ -215,6 +216,7 @@ void receive_setup(volatile uint32_t *data)
                         case GET_DESCRIPTOR: // 0x6
                             lastbReq = GET_DESCRIPTOR;
                             lastbReqVal = wValue;
+                            lastbReqLength = wLength;
                             set = 0x1;
                             break;
                         case SET_ADDRESS: // 0x5
