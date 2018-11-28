@@ -499,10 +499,10 @@ typedef struct
   uint32_t Reserved18;             /*!< Reserved  900h+(ep_num*20h)+1Ch-900h+ (ep_num * 20h) + 1Ch */
 } USB_OTG_INEndpointTypeDef;
 
-#define USB_OTG_IN_ENDPOINT_BASE           0x900U
-#define USB_OTG_IN_ENDPOINT0_ADDR          (USB_OTG_FS_PERIPH_BASE+USB_OTG_IN_ENDPOINT_BASE) 
-#define USB_OTG_IN_ENDPOINT0               ((USB_OTG_INEndpointTypeDef *) USB_OTG_IN_ENDPOINT0_ADDR)
-#define USB_OTG_IN_ENDPOINT(x)             ((USB_OTG_INEndpointTypeDef *) (USB_OTG_IN_ENDPOINT0_ADDR+(x*0x20)))
+#define USB_OTG_IN_ENDPOINT_BASE            0x900U
+#define USB_OTG_IN_ENDPOINT0_ADDR           (USB_OTG_FS_PERIPH_BASE+USB_OTG_IN_ENDPOINT_BASE) 
+#define USB_OTG_IN_ENDPOINT0                ((USB_OTG_INEndpointTypeDef *) USB_OTG_IN_ENDPOINT0_ADDR)
+#define USB_OTG_IN_ENDPOINT1                ((USB_OTG_INEndpointTypeDef *) (USB_OTG_IN_ENDPOINT0_ADDR+0x20))
 
 /********************  Bit definition for USB_OTG_DOEPCTL register  ********************/
 
@@ -782,7 +782,8 @@ enum {
     endpoint_desc = 0x5,
     device_qualifier_desc = 0x6,
     other_speed_qualifier_desc = 0x7,
-    otg_desc = 0x9
+    otg_desc = 0x9,
+    hid_report_descriptor = 0x22
 } Setup_Get_Descriptor_values;
 
 /********************  Bit definition for USB_OTG_DAINT register  ********************/
