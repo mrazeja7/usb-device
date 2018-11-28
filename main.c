@@ -1,6 +1,7 @@
 #include "stm32f4xx_conf.h"
 #include "lcd.h"
 #include "usb_defs.h"
+#include "enums.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include "delay.h" // TODO weird code
@@ -130,7 +131,6 @@ void sendDescriptor()
             break;
         case configuration_desc:
             sendData(config_descriptor_set, CONF_DESC_SET_SIZE);
-//            sendData(config_descriptor_set2, CONF_DESC_SET_SIZE); // Dan
             displayText("CONF DESC sent", 14, 0);
             break;
         case string_desc:
