@@ -8,6 +8,10 @@
 #include "usb_descriptors.h"
 #include "inits.h"
 
+// global vars used in my experimental movement timing hack
+uint8_t mouseready = 0;
+uint8_t moving = 0;
+
 void usb_reset()
 {
     // 29.17.5
@@ -140,6 +144,7 @@ void sendDescriptor()
         case hid_report_descriptor:
             displayText("HID REP DESC", 12, 0);
             sendData(mouse_report_descriptor, HID_REPORT_DESC_SIZE);
+            mouseready = 1;
             break;
         default:            
             len = sprintf(str, "OTHER DESC %0X", lastbReqVal >> 8);
@@ -368,8 +373,28 @@ void usb_receive()
     USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_RXFLVLM;
 }
 
+void sendExperimentalMovement()
+{
+    // https://visualgdb.com/tutorials/arm/stm32/timers/ timer interrupts - didn't get them working
+    moving = 1;
+    while ((USB_OTG_IN_ENDPOINT1->DIEPINT & USB_OTG_DIEPINT_TXFE	) == 0); // wait until TX fifo is empty
+    Delay(5000); // wait some more
+    USB_OTG_IN_ENDPOINT1->DIEPINT |= USB_OTG_DIEPINT_TXFE;
+    USB_OTG_IN_ENDPOINT1->DIEPCTL |= USB_OTG_DIEPCTL_TXFNUM_0;
+    USB_OTG_IN_ENDPOINT1->DIEPTSIZ = (USB_OTG_DIEPTSIZ_PKTCNT & 0x80000) | 3U;
+    USB_OTG_IN_ENDPOINT1->DIEPCTL |= USB_OTG_DIEPCTL_EPENA | USB_OTG_DIEPCTL_CNAK;
+
+    int8_t state[4];
+    state[1] = 2; // move to the right by 2 units
+    USB_OTG_TX_DFIFO1[0] = *((uint32_t *)&state);
+}
+
 void OTG_FS_IRQHandler(void) 
 {
+    // this insanity allows the code to wait a little bit (IRQ Handler fires 255 times) after the HID setup is 
+    // completely ready (mouseready is 0 until then), then we can send mouse movement packets indefinitely
+    if ((!moving && mouseready != 0 && ++mouseready != 0) || moving) // small delay, then fire
+        sendExperimentalMovement();
     uint32_t gintsts = USB_OTG_FS->GINTSTS;
     uint32_t daint = USBD_FS->DAINT;
     if (gintsts & USB_OTG_GINTSTS_USBRST)
@@ -423,7 +448,12 @@ void OTG_FS_IRQHandler(void)
         }
         if (daint & (USB_OTG_DAINT_IEPINT & 0x2)) // IN endpoint 1
         {
-            displayText("IN EP 1", 6, 0);
+            if(USB_OTG_IN_ENDPOINT1->DIEPINT & USB_OTG_DIEPINT_XFRC) 
+            {
+                displayText("IN EP 1 XFRC", 12, 0);
+                USB_OTG_IN_ENDPOINT1->DIEPINT |= USB_OTG_DIEPINT_XFRC;
+            }
+			
         }
     }
     
