@@ -160,8 +160,8 @@ void processSetup()
     if (!set)
         return;
     
-//    char str[20];
-//    uint8_t len;
+    char str[20];
+    uint8_t len;
     
     switch (lastbReq)
     {
@@ -170,6 +170,10 @@ void processSetup()
             break;
         case SET_ADDRESS:
             setAddr(lastbReqVal);
+            break;
+        case SET_CONFIGURATION:
+            len = sprintf(str, "SET CONF %02X", lastbReqVal);
+            displayText((uint8_t*) str, len, 0);
             break;
         default:
 //            displayText("OTHER PROC", 10, 0);
@@ -202,8 +206,8 @@ void receive_setup(volatile uint32_t *data)
     
     char str[20];
     //uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %u", recipient, type, direction, bRequest, wValue);
-    uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %02X", wLength, type, direction, bRequest, wValue);
-//    displayText((uint8_t*) str, len, 0);
+    uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %02X", wLength, recipient, type, bRequest, wValue);
+    displayText((uint8_t*) str, len, 0);
   
     switch(recipient)
     {
@@ -230,6 +234,7 @@ void receive_setup(volatile uint32_t *data)
                             break;
                         case SET_CONFIGURATION:
                             displayText("SET CONFIG", 10, 0);
+                            sendEmptyIn();
                             break;
                         default:
                             displayText("OTHER bREQ", 10, 0);
@@ -240,12 +245,43 @@ void receive_setup(volatile uint32_t *data)
                     displayText("OTHER TYPE", 10, 0);
                     break;
             }
+            break;            
+        case interface: // 0x1
+            switch (type)
+            {
+                case standard:
+                    switch (bRequest)
+                    {
+                        case GET_DESCRIPTOR:
+//                            displayText("INT ST GET_DESC", 15, 0);
+                            // wValue is 0x2200
+                            // https://www.silabs.com/documents/public/application-notes/AN249.pdf pg 18 - 0x22 is HID descriptor
+                            lastbReq = GET_DESCRIPTOR;
+                            lastbReqVal = wValue;
+                            lastbReqLength = wLength;
+                            set = 0x1;
+                            break;
+                    }
+                    break;
+                case class:
+                    switch (bRequest)
+                    {
+                        case SET_IDLE: // SET_IDLE https://www.microchip.com/forums/m883877.aspx
+                            sendEmptyIn();
+                            // initialize endpoint 1 here
+                            break;
+                    }
+                    break;             
+            }
+            break;
+        case endpoint: // 0x2
+            
             break;
         default:
             displayText("OTHER RECP", 10, 0);
             break;
     }
-    
+    // http://www.usbmadesimple.co.uk/ums_5.htm
 }
 
 void usb_receive()

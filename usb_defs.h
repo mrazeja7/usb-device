@@ -771,7 +771,8 @@ enum {
     GET_DESCRIPTOR = 0x6,
     SET_DESCRIPTOR = 0x7,
     GET_CONFIGURATION = 0x8,
-    SET_CONFIGURATION = 0x9
+    SET_CONFIGURATION = 0x9,
+    SET_IDLE = 0xA
 } Setup_bRequest;
 enum {
     device_desc = 0x1,
