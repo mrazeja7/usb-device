@@ -129,6 +129,47 @@ uint8_t config_descriptor_set[CONF_DESC_SET_SIZE] =
     0xA // bInterval - 10 ms
 };
 
+uint8_t config_descriptor_set2[CONF_DESC_SET_SIZE] = 
+{
+    //////////		Standard Configuration Descriptor
+		0x09, 	 	//	0	bLength	1	Number	Size of Descriptor in Bytes
+		0x02,  		//	1	bDescriptorType	1	Constant	Configuration Descriptor (0x02)
+		CONF_DESC_SET_SIZE, 0x0,				//	2	wTotalLength	2	Number	Total length in bytes of data returned
+		0x01, 		//	4	bNumInterfaces	1	Number	Number of Interfaces //one interface
+		0x01, 		//	5	bConfigurationValue	1	Number	Value to use as an argument to select this configuration
+		0x00, 		//	6	iConfiguration	1	Index	Index of String Descriptor describing this configuration
+		0x80, 		//	7	bmAttributes	1	Bitmap	D7 Reserved, set to 1. (USB 1.0 Bus Powered) D6 Self Powered, D5 Remote Wakeup, D4..0 Reserved, set to 0.
+		0x32,		  //	8	bMaxPower	1	mA	Maximum Power Consumption in 2mA units//100 mA
+
+		//////////		Standard Interface Descriptor
+		0x09,			//	0	bLength	1	Number	Size of Descriptor in Bytes (9 Bytes)
+		0x04,			//	1	bDescriptorType	1	Constant	Interface Descriptor (0x04)
+		0x00,			//	2	bInterfaceNumber	1	Number	Number of Interface //should be 1 maybe??
+		0x00,			//	3	bAlternateSetting	1	Number	Value used to select alternative setting
+		0x01,			//	4	bNumEndpoints	1	Number	Number of Endpoints used for this interface
+		0x03,			//	5	bInterfaceClass	1	Class	Class Code (Assigned by USB Org) 							//HID
+		0x01,			//	6	bInterfaceSubClass	1	SubClass	Subclass Code (Assigned by USB Org)
+		0x02,			//	7	bInterfaceProtocol	1	Protocol	Protocol Code (Assigned by USB Org)  //mouse
+		0x00,			//	8	iInterface	1	Index	Index of String Descriptor Describing this interface
+	
+		//////////		Class Specific HID Descriptor
+		0x09,     //  bLength: HID Descriptor size
+		0x21,			//	bDescriptorType: HID
+		0x10,0x01,//  bcdHID: Numeric expression identifying the HID Class Specification release (2 bytes)		
+		0x00,     //	bCountryCode: Hardware target country
+		0x01,     //  bNumDescriptors: Number of HID class descriptors to follow
+		0x22,     //	bDescriptorType
+		0x32,0x00,				//	wItemLength: Total length of Report descriptor!!!!!!!!!!!!
+		
+		//////////		Standard Endpoint Descriptor	
+		0x07,     //	bLength: Endpoint Descriptor size
+		0x05, 		//	bDescriptorType
+		0x81,    	//	bEndpointAddress: Endpoint Address (IN) EP1/2???
+		0x03,     //	bmAttributes: Interrupt endpoint
+		0x08,0x00,//	wMaxPacketSize: 8 Byte max 
+		0x0A      //	bInterval: Polling Interval (10 ms - 0x0A),(0xFF = 250 ms)
+};
+
 /* string descriptors https://www.beyondlogic.org/usbnutshell/usb5.shtml#StringDescriptors */
 uint8_t lang_descriptor[LANG_DESC_SIZE] = 
 {
