@@ -6,10 +6,10 @@ void sysclk_init()
 {
     GPIO_InitTypeDef  GPIO_InitStructure;
 
-  /* nastavime hodiny dle Clock tree v reference manual - Figure 9.
-   *
-   * nastaveni radeji overit, nejsem si zcela jist
-   */
+    /* nastavime hodiny dle Clock tree v reference manual - Figure 9.
+    *
+    * nastaveni radeji overit, nejsem si zcela jist
+    */
     RCC_HSEConfig(RCC_HSE_ON);
     RCC_HCLKConfig(RCC_SYSCLK_Div1);
     RCC_PCLK1Config(RCC_HCLK_Div4);
@@ -51,7 +51,7 @@ void sysclk_init()
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOC, &GPIO_InitStructure);
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
 }
 
 void usb_init()
