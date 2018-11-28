@@ -8,7 +8,7 @@
 #include "usb_descriptors.h"
 #include "inits.h"
 
-void usb_reset() // ok
+void usb_reset()
 {
     // 29.17.5
     
@@ -137,6 +137,10 @@ void sendDescriptor()
 //            displayText("DEV QUAL DESC", 13, 0);
 //            sendData(qualifier_descriptor, QUALIFIER_DESC_SIZE);
 //            break;
+        case hid_report_descriptor:
+            displayText("HID REP DESC", 12, 0);
+            sendData(mouse_report_descriptor, HID_REPORT_DESC_SIZE);
+            break;
         default:            
             len = sprintf(str, "OTHER DESC %0X", lastbReqVal >> 8);
             displayText((uint8_t*) str, len, 0);
@@ -150,6 +154,17 @@ void setAddr(uint16_t val)
     char str[20];
     uint8_t len = sprintf(str, "SET_ADDR %02X", val);
     displayText((uint8_t*) str, len, 0);
+}
+
+void initialize_inep1()
+{
+    USB_OTG_FS->DIEPTXF[0] = (256U << 16);
+	USB_OTG_FS->DIEPTXF[0] |= 128U; // same thing as for in EP 0, except this one is periodic
+    USBD_FS->DAINTMSK |= 0x2; // IEPM = bit 1 for endpoint 1
+    // page 1041
+    USB_OTG_IN_ENDPOINT1->DIEPCTL = 64U | USB_OTG_DIEPCTL_USBAEP 
+                                        | USB_OTG_DIEPCTL_EPTYP | USB_OTG_DIEPCTL_EONUM_DPID 
+                                        | USB_OTG_DIEPCTL_TXFNUM_0; // define a new TX_DFIFO - pg 1090 USB_OTG_TX_DFIFO1
 }
 
 void processSetup()
@@ -175,6 +190,11 @@ void processSetup()
             len = sprintf(str, "SET CONF %02X", lastbReqVal);
             displayText((uint8_t*) str, len, 0);
             break;
+    case SET_IDLE:    
+            sendEmptyIn();
+            initialize_inep1();
+            // initialize endpoint 1 here
+            break;
         default:
 //            displayText("OTHER PROC", 10, 0);
 //            len = sprintf(str, "PROC %02X %02X", lastbReq, lastbReqVal);
@@ -185,6 +205,7 @@ void processSetup()
     // reset last request information as this one is done
     lastbReq = 0x0; 
     lastbReqVal = 0x0;
+    lastbReqLength = 0x0;
     set = 0x0;
     
     if(USB_OTG_OUT_ENDPOINT0->DOEPINT & USB_OTG_DOEPINT_XFRC) 
@@ -202,12 +223,12 @@ void receive_setup(volatile uint32_t *data)
     
     uint8_t recipient = bmRequestType & 0x1F; // D4..0
     uint8_t type = (bmRequestType & 0x60) >> 5; // D6,5
-    uint8_t direction = (bmRequestType & 0x80) >> 7; // D7
+//    uint8_t direction = (bmRequestType & 0x80) >> 7; // D7
     
     char str[20];
     //uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %u", recipient, type, direction, bRequest, wValue);
     uint8_t len = sprintf(str, "STP %02X %02X %02X %02X %02X", wLength, recipient, type, bRequest, wValue);
-    displayText((uint8_t*) str, len, 0);
+//    displayText((uint8_t*) str, len, 0);
   
     switch(recipient)
     {
@@ -237,6 +258,7 @@ void receive_setup(volatile uint32_t *data)
                             sendEmptyIn();
                             break;
                         default:
+                            displayText((uint8_t*) str, len, 0);
                             displayText("OTHER bREQ", 10, 0);
                             break;
                     }
@@ -253,9 +275,9 @@ void receive_setup(volatile uint32_t *data)
                     switch (bRequest)
                     {
                         case GET_DESCRIPTOR:
-//                            displayText("INT ST GET_DESC", 15, 0);
                             // wValue is 0x2200
                             // https://www.silabs.com/documents/public/application-notes/AN249.pdf pg 18 - 0x22 is HID descriptor
+                            // also hid1_11.pdf section 7.1
                             lastbReq = GET_DESCRIPTOR;
                             lastbReqVal = wValue;
                             lastbReqLength = wLength;
@@ -267,21 +289,42 @@ void receive_setup(volatile uint32_t *data)
                     switch (bRequest)
                     {
                         case SET_IDLE: // SET_IDLE https://www.microchip.com/forums/m883877.aspx
-                            sendEmptyIn();
-                            // initialize endpoint 1 here
+                            lastbReq = SET_IDLE;
+                            lastbReqVal = wValue;
+                            lastbReqLength = wLength;
+                            set = 0x1;
                             break;
                     }
-                    break;             
+                    break;  
+                default:
+                    displayText((uint8_t*) str, len, 0);
+                    displayText("OTHER TYPE", 10, 0);
+                    break;
             }
             break;
         case endpoint: // 0x2
-            
+            switch (type)
+            {
+                case standard:
+                    switch (bRequest)
+                    {
+                        case CLEAR_FEATURE:
+                            // do nothing?
+                            break;
+                    }
+                    break;
+                default:
+                    displayText((uint8_t*) str, len, 0);
+                    displayText("OTHER TYPE", 10, 0);
+                    break;
+            }
             break;
         default:
+            displayText((uint8_t*) str, len, 0);
             displayText("OTHER RECP", 10, 0);
             break;
     }
-    // http://www.usbmadesimple.co.uk/ums_5.htm
+    // http://www.usbmadesimple.co.uk/ums_5.htm mouse input report
 }
 
 void usb_receive()
@@ -295,9 +338,9 @@ void usb_receive()
     
     // 3, 4
     uint32_t bytecount = (grxstsp & USB_OTG_GRXSTSP_BCNT) >> USB_OTG_GRXSTSP_BCNT_Pos;
-    uint32_t pktsts = (grxstsp & USB_OTG_GRXSTSP_PKTSTS) >> USB_OTG_GRXSTSP_PKTSTS_Pos;
-    uint32_t dpid = (grxstsp & USB_OTG_GRXSTSP_DPID) >> USB_OTG_GRXSTSP_DPID_Pos;
-    uint32_t epnum = (grxstsp & USB_OTG_GRXSTSP_EPNUM);
+    uint8_t pktsts = (grxstsp & USB_OTG_GRXSTSP_PKTSTS) >> USB_OTG_GRXSTSP_PKTSTS_Pos;
+    uint8_t dpid = (grxstsp & USB_OTG_GRXSTSP_DPID) >> USB_OTG_GRXSTSP_DPID_Pos;
+    uint8_t epnum = (grxstsp & USB_OTG_GRXSTSP_EPNUM);
     
     char str[16];
     uint8_t len = sprintf(str, "RXF %02X %02X %02X %02X", pktsts, bytecount, epnum, dpid);
@@ -377,6 +420,10 @@ void OTG_FS_IRQHandler(void)
 				USB_OTG_IN_ENDPOINT0->DIEPINT |= USB_OTG_DIEPINT_TXFE;
 //                displayText("IN0 IEPINT TXFE", 15, 0);
 			}	
+        }
+        if (daint & (USB_OTG_DAINT_IEPINT & 0x2)) // IN endpoint 1
+        {
+            displayText("IN EP 1", 6, 0);
         }
     }
     

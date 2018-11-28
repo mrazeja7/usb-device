@@ -750,6 +750,9 @@ typedef struct
 #define USB_OTG_RX_DFIFO ((volatile uint32_t *) USB_OTG_RX_DFIFO_ADDR)
 #define USB_OTG_TX_DFIFO ((volatile uint32_t *) USB_OTG_RX_DFIFO_ADDR)
 
+#define USB_OTG_TX_DFIFO1_ADDR (USB_OTG_FS_PERIPH_BASE + 0x2000)
+#define USB_OTG_TX_DFIFO1 ((volatile uint32_t *) USB_OTG_TX_DFIFO1_ADDR)
+
 /* SETUP packet request enums */
 enum {
     standard = 0x0,
