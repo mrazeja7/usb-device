@@ -8,6 +8,7 @@
 #include "lcd_func.h"
 #include "usb_descriptors.h"
 #include "inits.h"
+#include "stm324xg_eval.h"
 
 // global vars used in my experimental movement timing hack
 uint8_t mouseready = 0;
@@ -373,7 +374,7 @@ void usb_receive()
     USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_RXFLVLM;
 }
 
-void sendExperimentalMovement()
+void sendExperimentalMovement(char direction)
 {
     // https://visualgdb.com/tutorials/arm/stm32/timers/ timer interrupts - didn't get them working
     moving = 1;
@@ -385,16 +386,56 @@ void sendExperimentalMovement()
     USB_OTG_IN_ENDPOINT1->DIEPCTL |= USB_OTG_DIEPCTL_EPENA | USB_OTG_DIEPCTL_CNAK;
 
     int8_t state[4];
-    state[1] = 2; // move to the right by 2 units
+    switch (direction)
+    {
+        case 'l':
+            state[1] = -2; // move to the left by 2 units
+            break;
+        case 'r':
+            state[1] = 2; // move to the right by 2 units
+            break;
+        default:
+            break;
+    }
+    
     USB_OTG_TX_DFIFO1[0] = *((uint32_t *)&state);
+}
+
+// adapted from STM32F4xx_StdPeriph_Examples\I2C\I2C_IOExpander
+void EXTI15_10_IRQHandler(void)
+{
+    if(EXTI_GetITStatus(TAMPER_BUTTON_EXTI_LINE) != RESET)
+    {        
+        displayText("TAMPER", 6, 0);
+        sendExperimentalMovement('r');
+        
+        EXTI_ClearITPendingBit(TAMPER_BUTTON_EXTI_LINE);
+    }
+}
+
+void EXTI0_IRQHandler(void)
+{
+    if(EXTI_GetITStatus(WAKEUP_BUTTON_EXTI_LINE) != RESET)
+    {        
+        displayText("WAKEUP", 6, 0);
+        sendExperimentalMovement('l');
+        
+        EXTI_ClearITPendingBit(WAKEUP_BUTTON_EXTI_LINE);
+    }
+}
+
+void initializeButtons()
+{
+    STM_EVAL_PBInit(BUTTON_TAMPER, BUTTON_MODE_EXTI);
+    STM_EVAL_PBInit(BUTTON_WAKEUP, BUTTON_MODE_EXTI);
 }
 
 void OTG_FS_IRQHandler(void) 
 {
     // this insanity allows the code to wait a little bit (IRQ Handler fires 255 times) after the HID setup is 
     // completely ready (mouseready is 0 until then), then we can send mouse movement packets indefinitely
-    if ((!moving && mouseready != 0 && ++mouseready != 0) || moving) // small delay, then fire
-        sendExperimentalMovement();
+//    if ((!moving && mouseready != 0 && ++mouseready != 0) || moving) // small delay, then fire
+//        sendExperimentalMovement();
     uint32_t gintsts = USB_OTG_FS->GINTSTS;
     uint32_t daint = USBD_FS->DAINT;
     if (gintsts & USB_OTG_GINTSTS_USBRST)
@@ -450,7 +491,7 @@ void OTG_FS_IRQHandler(void)
         {
             if(USB_OTG_IN_ENDPOINT1->DIEPINT & USB_OTG_DIEPINT_XFRC) 
             {
-                displayText("IN EP 1 XFRC", 12, 0);
+//                displayText("IN EP 1 XFRC", 12, 0);
                 USB_OTG_IN_ENDPOINT1->DIEPINT |= USB_OTG_DIEPINT_XFRC;
             }
 			
@@ -472,7 +513,8 @@ int main()
     usb_core_init();
     
     nvic_init();
-        
+    
+    initializeButtons();    
     while(1);
 //    return 0;
 }

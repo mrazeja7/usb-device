@@ -2523,6 +2523,9 @@
         <name>$PROJ_DIR$\main.c</name>
     </file>
     <file>
+        <name>$PROJ_DIR$\stm324xg_eval.c</name>
+    </file>
+    <file>
         <name>$PROJ_DIR$\usb_descriptors.h</name>
     </file>
 </project>
