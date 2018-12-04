@@ -9,6 +9,7 @@
 #include "usb_descriptors.h"
 #include "inits.h"
 #include "stm324xg_eval.h"
+#include "stm324xg_eval_ioe.h"
 
 // global vars used in my experimental movement timing hack
 uint8_t mouseready = 0;
@@ -374,29 +375,50 @@ void usb_receive()
     USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_RXFLVLM;
 }
 
-void sendExperimentalMovement(char direction)
+int8_t state[4];
+int8_t leftClicked;
+int8_t rightClicked;
+
+void sendExperimentalMovement(uint8_t direction)
 {
     // https://visualgdb.com/tutorials/arm/stm32/timers/ timer interrupts - didn't get them working
-    moving = 1;
-    while ((USB_OTG_IN_ENDPOINT1->DIEPINT & USB_OTG_DIEPINT_TXFE	) == 0); // wait until TX fifo is empty
-    Delay(5000); // wait some more
+//    moving = 1;
+//    while ((USB_OTG_IN_ENDPOINT1->DIEPINT & USB_OTG_DIEPINT_TXFE	) == 0); // wait until TX fifo is empty
+//    Delay(5000); // wait some more
+    
+    for (int i = 0; i < 4; ++i)
+        state[i] = 0;
+    
+    switch (direction)
+    {
+        case CURSOR_LEFT:
+            state[1] = -2; // move to the left by 2 units
+            break;
+        case CURSOR_RIGHT:
+            state[1] = 2; // move to the right by 2 units
+            break;
+        case CURSOR_UP:
+            state[2] = -2; // move up by 2 units
+            break;
+        case CURSOR_DOWN:
+            state[2] = 2; // move down by 2 units
+            break;
+        case MOUSEBUTTON_LEFT:
+            state[0] = 1U;//leftClicked;
+            leftClicked = (leftClicked ? 0U : 1U);
+            break;
+        case MOUSEBUTTON_RIGHT:
+            state[0] = 2U;//rightClicked;
+            rightClicked = (rightClicked ? 0U : 2U);
+            break;
+        default:
+            return;
+    }
+    
     USB_OTG_IN_ENDPOINT1->DIEPINT |= USB_OTG_DIEPINT_TXFE;
     USB_OTG_IN_ENDPOINT1->DIEPCTL |= USB_OTG_DIEPCTL_TXFNUM_0;
     USB_OTG_IN_ENDPOINT1->DIEPTSIZ = (USB_OTG_DIEPTSIZ_PKTCNT & 0x80000) | 3U;
     USB_OTG_IN_ENDPOINT1->DIEPCTL |= USB_OTG_DIEPCTL_EPENA | USB_OTG_DIEPCTL_CNAK;
-
-    int8_t state[4];
-    switch (direction)
-    {
-        case 'l':
-            state[1] = -2; // move to the left by 2 units
-            break;
-        case 'r':
-            state[1] = 2; // move to the right by 2 units
-            break;
-        default:
-            break;
-    }
     
     USB_OTG_TX_DFIFO1[0] = *((uint32_t *)&state);
 }
@@ -406,10 +428,22 @@ void EXTI15_10_IRQHandler(void)
 {
     if(EXTI_GetITStatus(TAMPER_BUTTON_EXTI_LINE) != RESET)
     {        
-        displayText("TAMPER", 6, 0);
-        sendExperimentalMovement('r');
-        
+        sendExperimentalMovement(MOUSEBUTTON_RIGHT);
+      
         EXTI_ClearITPendingBit(TAMPER_BUTTON_EXTI_LINE);
+    }
+    
+    if(EXTI_GetITStatus(KEY_BUTTON_EXTI_LINE) != RESET)
+    {
+//        displayText("KEY", 3, 0);
+        JOYState_TypeDef jstate = IOE_JoyStickGetState();
+        char str[20];
+        uint8_t len = sprintf(str, "JOY state is %0X", jstate);
+        displayText((uint8_t*) str, len, 0);
+        
+        sendExperimentalMovement((uint8_t) jstate);
+        
+        EXTI_ClearITPendingBit(KEY_BUTTON_EXTI_LINE);
     }
 }
 
@@ -418,7 +452,7 @@ void EXTI0_IRQHandler(void)
     if(EXTI_GetITStatus(WAKEUP_BUTTON_EXTI_LINE) != RESET)
     {        
         displayText("WAKEUP", 6, 0);
-        sendExperimentalMovement('l');
+        sendExperimentalMovement(MOUSEBUTTON_LEFT);
         
         EXTI_ClearITPendingBit(WAKEUP_BUTTON_EXTI_LINE);
     }
@@ -428,6 +462,8 @@ void initializeButtons()
 {
     STM_EVAL_PBInit(BUTTON_TAMPER, BUTTON_MODE_EXTI);
     STM_EVAL_PBInit(BUTTON_WAKEUP, BUTTON_MODE_EXTI);
+    STM_EVAL_PBInit(BUTTON_KEY, BUTTON_MODE_EXTI);
+    IOE_Config();    
 }
 
 void OTG_FS_IRQHandler(void) 
@@ -493,8 +529,7 @@ void OTG_FS_IRQHandler(void)
             {
 //                displayText("IN EP 1 XFRC", 12, 0);
                 USB_OTG_IN_ENDPOINT1->DIEPINT |= USB_OTG_DIEPINT_XFRC;
-            }
-			
+            }			
         }
     }
     
@@ -514,7 +549,7 @@ int main()
     
     nvic_init();
     
-    initializeButtons();    
+    initializeButtons();
     while(1);
 //    return 0;
 }

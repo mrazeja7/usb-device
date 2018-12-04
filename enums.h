@@ -1,6 +1,8 @@
 #ifndef __ENUMS_H
 #define __ENUMS_H
 
+#include "stm324xg_eval_ioe.h"
+
 /* SETUP packet request enums */
 enum {
     standard = 0x0,
@@ -36,5 +38,15 @@ enum {
     otg_desc = 0x9,
     hid_report_descriptor = 0x22
 } Setup_get_descriptor_values;
+
+/* joystick/mouse movement enums */
+enum {
+    CURSOR_LEFT = JOY_LEFT,
+    CURSOR_RIGHT = JOY_RIGHT,
+    CURSOR_UP = JOY_UP,
+    CURSOR_DOWN = JOY_DOWN,
+    MOUSEBUTTON_LEFT = 0xE,
+    MOUSEBUTTON_RIGHT = 0xF
+} Cursor_movement;
 
 #endif
