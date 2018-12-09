@@ -4,16 +4,16 @@
 #include "enums.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "delay.h" // TODO weird code
+#include "delay.h"
 #include "lcd_func.h"
 #include "usb_descriptors.h"
 #include "inits.h"
 #include "stm324xg_eval.h"
 #include "stm324xg_eval_ioe.h"
 
-// global vars used in my experimental movement timing hack
-uint8_t mouseready = 0;
-uint8_t moving = 0;
+// mouse cursor movement speeds
+#define HORIZONTAL_SPEED 5
+#define VERTICAL_SPEED 3
 
 void usb_reset()
 {
@@ -146,7 +146,6 @@ void sendDescriptor()
         case hid_report_descriptor:
             displayText("HID REP DESC", 12, 0);
             sendData(mouse_report_descriptor, HID_REPORT_DESC_SIZE);
-            mouseready = 1;
             break;
         default:            
             len = sprintf(str, "OTHER DESC %0X", lastbReqVal >> 8);
@@ -203,9 +202,6 @@ void processSetup()
             // initialize endpoint 1 here
             break;
         default:
-//            displayText("OTHER PROC", 10, 0);
-//            len = sprintf(str, "PROC %02X %02X", lastbReq, lastbReqVal);
-//            displayText((uint8_t*) str, len, 0);
             break;
     }
     
@@ -376,8 +372,6 @@ void usb_receive()
 }
 
 int8_t state[4];
-int8_t leftClicked;
-int8_t rightClicked;
 uint8_t moveMouse;
 
 void sendMouseState()
@@ -393,9 +387,6 @@ void sendMouseState()
 void sendExperimentalMovement(uint8_t direction)
 {
     // https://visualgdb.com/tutorials/arm/stm32/timers/ timer interrupts - didn't get them working
-//    moving = 1;
-//    while ((USB_OTG_IN_ENDPOINT1->DIEPINT & USB_OTG_DIEPINT_TXFE	) == 0); // wait until TX fifo is empty
-//    Delay(5000); // wait some more
     
     for (int i = 0; i < 4; ++i)
         state[i] = 0;
@@ -403,25 +394,23 @@ void sendExperimentalMovement(uint8_t direction)
     switch (direction)
     {
         case CURSOR_LEFT:
-            state[1] = -2; // move to the left by 2 units
+            state[1] = -HORIZONTAL_SPEED; // move to the left by 2 units
             break;
         case CURSOR_RIGHT:
-            state[1] = 2; // move to the right by 2 units
+            state[1] = HORIZONTAL_SPEED; // move to the right by 2 units
             break;
         case CURSOR_UP:
-            state[2] = -2; // move up by 2 units
+            state[2] = -VERTICAL_SPEED; // move up by 2 units
             break;
         case CURSOR_DOWN:
-            state[2] = 2; // move down by 2 units
+            state[2] = VERTICAL_SPEED; // move down by 2 units
             break;
         case JOY_CENTER:
         case MOUSEBUTTON_LEFT:
-            state[0] = 1U;//leftClicked;
-            leftClicked = (leftClicked ? 0U : 1U);
+            state[0] = 1U;
             break;
         case MOUSEBUTTON_RIGHT:
-            state[0] = 2U;//rightClicked;
-            rightClicked = (rightClicked ? 0U : 2U);
+            state[0] = 2U;
             break;
 //        default:
 //            return;
@@ -434,29 +423,35 @@ void handleMovement()
 {
     while (moveMouse)
     {
+        uint32_t btnState = STM_EVAL_PBGetState(BUTTON_WAKEUP);
+        if (btnState)
+            sendExperimentalMovement(MOUSEBUTTON_RIGHT);
+        
         JOYState_TypeDef jstate = IOE_JoyStickGetState();
         sendExperimentalMovement((uint8_t) jstate);
         
         busyDelay();
-//        displayText("1", 1, 0);
+        displayText("1", 1, 1);
     }
 }
 
 // adapted from STM32F4xx_StdPeriph_Examples\I2C\I2C_IOExpander
 void EXTI15_10_IRQHandler(void)
 {
-    if(EXTI_GetITStatus(TAMPER_BUTTON_EXTI_LINE) != RESET)
-    {        
-        sendExperimentalMovement(MOUSEBUTTON_RIGHT);
-      
-        EXTI_ClearITPendingBit(TAMPER_BUTTON_EXTI_LINE);
-    }
+    // no longer used
+//    if(EXTI_GetITStatus(TAMPER_BUTTON_EXTI_LINE) != RESET)
+//    {        
+//        sendExperimentalMovement(MOUSEBUTTON_RIGHT);
+//      
+//        EXTI_ClearITPendingBit(TAMPER_BUTTON_EXTI_LINE);
+//    }
     
     if(EXTI_GetITStatus(KEY_BUTTON_EXTI_LINE) != RESET)
     {
         displayText("mouse mode active", 17, 0);
+        displayText("use joy and wakeup", 18, 0);
         
-        moveMouse = (moveMouse? 0 : 1);
+        moveMouse = (moveMouse? 0 : 1); // can not be switched back
         
         EXTI_ClearITPendingBit(KEY_BUTTON_EXTI_LINE);
         
@@ -465,6 +460,7 @@ void EXTI15_10_IRQHandler(void)
     }
 }
 
+// no longer used
 void EXTI0_IRQHandler(void)
 {
     if(EXTI_GetITStatus(WAKEUP_BUTTON_EXTI_LINE) != RESET)
@@ -478,18 +474,16 @@ void EXTI0_IRQHandler(void)
 
 void initializeButtons()
 {
-    STM_EVAL_PBInit(BUTTON_TAMPER, BUTTON_MODE_EXTI);
-    STM_EVAL_PBInit(BUTTON_WAKEUP, BUTTON_MODE_EXTI);
+//    STM_EVAL_PBInit(BUTTON_TAMPER, BUTTON_MODE_EXTI);
+//    STM_EVAL_PBInit(BUTTON_WAKEUP, BUTTON_MODE_EXTI);
+    STM_EVAL_PBInit(BUTTON_TAMPER, BUTTON_MODE_GPIO);
+    STM_EVAL_PBInit(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
     STM_EVAL_PBInit(BUTTON_KEY, BUTTON_MODE_EXTI);
     IOE_Config();    
 }
 
 void OTG_FS_IRQHandler(void) 
 {
-    // this insanity allows the code to wait a little bit (IRQ Handler fires 255 times) after the HID setup is 
-    // completely ready (mouseready is 0 until then), then we can send mouse movement packets indefinitely
-//    if ((!moving && mouseready != 0 && ++mouseready != 0) || moving) // small delay, then fire
-//        sendExperimentalMovement();
     uint32_t gintsts = USB_OTG_FS->GINTSTS;
     uint32_t daint = USBD_FS->DAINT;
     if (gintsts & USB_OTG_GINTSTS_USBRST)
@@ -562,7 +556,7 @@ int main()
     LCD_SetFont(&Font16x24); 
 
     usb_init();
-    Delay(500);
+    shortDelay();
     usb_core_init();
     
     nvic_init();
