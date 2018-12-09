@@ -378,6 +378,17 @@ void usb_receive()
 int8_t state[4];
 int8_t leftClicked;
 int8_t rightClicked;
+uint8_t moveMouse;
+
+void sendMouseState()
+{
+    USB_OTG_IN_ENDPOINT1->DIEPINT |= USB_OTG_DIEPINT_TXFE;
+    USB_OTG_IN_ENDPOINT1->DIEPCTL |= USB_OTG_DIEPCTL_TXFNUM_0;
+    USB_OTG_IN_ENDPOINT1->DIEPTSIZ = (USB_OTG_DIEPTSIZ_PKTCNT & 0x80000) | 3U;
+    USB_OTG_IN_ENDPOINT1->DIEPCTL |= USB_OTG_DIEPCTL_EPENA | USB_OTG_DIEPCTL_CNAK;
+    
+    USB_OTG_TX_DFIFO1[0] = *((uint32_t *)&state);
+}
 
 void sendExperimentalMovement(uint8_t direction)
 {
@@ -403,6 +414,7 @@ void sendExperimentalMovement(uint8_t direction)
         case CURSOR_DOWN:
             state[2] = 2; // move down by 2 units
             break;
+        case JOY_CENTER:
         case MOUSEBUTTON_LEFT:
             state[0] = 1U;//leftClicked;
             leftClicked = (leftClicked ? 0U : 1U);
@@ -411,16 +423,23 @@ void sendExperimentalMovement(uint8_t direction)
             state[0] = 2U;//rightClicked;
             rightClicked = (rightClicked ? 0U : 2U);
             break;
-        default:
-            return;
+//        default:
+//            return;
     }
     
-    USB_OTG_IN_ENDPOINT1->DIEPINT |= USB_OTG_DIEPINT_TXFE;
-    USB_OTG_IN_ENDPOINT1->DIEPCTL |= USB_OTG_DIEPCTL_TXFNUM_0;
-    USB_OTG_IN_ENDPOINT1->DIEPTSIZ = (USB_OTG_DIEPTSIZ_PKTCNT & 0x80000) | 3U;
-    USB_OTG_IN_ENDPOINT1->DIEPCTL |= USB_OTG_DIEPCTL_EPENA | USB_OTG_DIEPCTL_CNAK;
-    
-    USB_OTG_TX_DFIFO1[0] = *((uint32_t *)&state);
+    sendMouseState();
+}
+
+void handleMovement()
+{
+    while (moveMouse)
+    {
+        JOYState_TypeDef jstate = IOE_JoyStickGetState();
+        sendExperimentalMovement((uint8_t) jstate);
+        
+        busyDelay();
+//        displayText("1", 1, 0);
+    }
 }
 
 // adapted from STM32F4xx_StdPeriph_Examples\I2C\I2C_IOExpander
@@ -435,15 +454,14 @@ void EXTI15_10_IRQHandler(void)
     
     if(EXTI_GetITStatus(KEY_BUTTON_EXTI_LINE) != RESET)
     {
-//        displayText("KEY", 3, 0);
-        JOYState_TypeDef jstate = IOE_JoyStickGetState();
-        char str[20];
-        uint8_t len = sprintf(str, "JOY state is %0X", jstate);
-        displayText((uint8_t*) str, len, 0);
+        displayText("mouse mode active", 17, 0);
         
-        sendExperimentalMovement((uint8_t) jstate);
+        moveMouse = (moveMouse? 0 : 1);
         
         EXTI_ClearITPendingBit(KEY_BUTTON_EXTI_LINE);
+        
+        handleMovement();
+        // this breaks the button interrupt handlers
     }
 }
 
@@ -550,6 +568,7 @@ int main()
     nvic_init();
     
     initializeButtons();
+    
     while(1);
 //    return 0;
 }
