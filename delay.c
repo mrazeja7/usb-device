@@ -19,3 +19,9 @@ void TimingDelay_Decrement(void)
         uwTimingDelay--;
     }
 }
+
+void busyDelay()
+{   
+    for (int i=0; i<150; i++)
+        for (int j=0; j<30000; j++);
+}
