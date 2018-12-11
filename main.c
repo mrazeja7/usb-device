@@ -120,6 +120,9 @@ void sendStringDesc(uint8_t index)
     }
 }
 
+void sendMouseState();
+void handleMovement();
+
 void sendDescriptor()
 {
     char str[20];
@@ -146,6 +149,7 @@ void sendDescriptor()
         case hid_report_descriptor:
             displayText("HID REP DESC", 12, 0);
             sendData(mouse_report_descriptor, HID_REPORT_DESC_SIZE);
+            enableTimerInterrupt();            
             break;
         default:            
             len = sprintf(str, "OTHER DESC %0X", lastbReqVal >> 8);
@@ -196,8 +200,9 @@ void processSetup()
             len = sprintf(str, "SET CONF %02X", lastbReqVal);
             displayText((uint8_t*) str, len, 0);
             break;
-    case SET_IDLE:    
+        case SET_IDLE:    
             sendEmptyIn();
+            displayText("SET IDLE", 8, 0);
             initialize_inep1();
             // initialize endpoint 1 here
             break;
@@ -371,8 +376,7 @@ void usb_receive()
     USB_OTG_FS->GINTMSK |= USB_OTG_GINTMSK_RXFLVLM;
 }
 
-int8_t state[4];
-uint8_t moveMouse;
+int8_t state[4]; // first byte - buttons, 2nd byte - horizontal change, 3rd byte - vertical change, 4th byte is unused
 
 void sendMouseState()
 {
@@ -385,25 +389,23 @@ void sendMouseState()
 }
 
 void sendExperimentalMovement(uint8_t direction)
-{
-    // https://visualgdb.com/tutorials/arm/stm32/timers/ timer interrupts - didn't get them working
-    
+{    
     for (int i = 0; i < 4; ++i)
         state[i] = 0;
     
     switch (direction)
     {
         case CURSOR_LEFT:
-            state[1] = -HORIZONTAL_SPEED; // move to the left by 2 units
+            state[1] = -HORIZONTAL_SPEED; // move to the left
             break;
         case CURSOR_RIGHT:
-            state[1] = HORIZONTAL_SPEED; // move to the right by 2 units
+            state[1] = HORIZONTAL_SPEED; // move to the right
             break;
         case CURSOR_UP:
-            state[2] = -VERTICAL_SPEED; // move up by 2 units
+            state[2] = -VERTICAL_SPEED; // move up
             break;
         case CURSOR_DOWN:
-            state[2] = VERTICAL_SPEED; // move down by 2 units
+            state[2] = VERTICAL_SPEED; // move down
             break;
         case JOY_CENTER:
         case MOUSEBUTTON_LEFT:
@@ -421,65 +423,17 @@ void sendExperimentalMovement(uint8_t direction)
 
 void handleMovement()
 {
-    while (moveMouse)
+    while (1)
     {
-        uint32_t btnState = STM_EVAL_PBGetState(BUTTON_WAKEUP);
-        if (btnState)
+        uint32_t rmbState = STM_EVAL_PBGetState(BUTTON_WAKEUP);
+        if (rmbState)
             sendExperimentalMovement(MOUSEBUTTON_RIGHT);
         
         JOYState_TypeDef jstate = IOE_JoyStickGetState();
         sendExperimentalMovement((uint8_t) jstate);
         
         busyDelay();
-        displayText("1", 1, 1);
     }
-}
-
-// adapted from STM32F4xx_StdPeriph_Examples\I2C\I2C_IOExpander
-void EXTI15_10_IRQHandler(void)
-{
-    // no longer used
-//    if(EXTI_GetITStatus(TAMPER_BUTTON_EXTI_LINE) != RESET)
-//    {        
-//        sendExperimentalMovement(MOUSEBUTTON_RIGHT);
-//      
-//        EXTI_ClearITPendingBit(TAMPER_BUTTON_EXTI_LINE);
-//    }
-    
-    if(EXTI_GetITStatus(KEY_BUTTON_EXTI_LINE) != RESET)
-    {
-        displayText("mouse mode active", 17, 0);
-        displayText("use joy and wakeup", 18, 0);
-        
-        moveMouse = (moveMouse? 0 : 1); // can not be switched back
-        
-        EXTI_ClearITPendingBit(KEY_BUTTON_EXTI_LINE);
-        
-        handleMovement();
-        // this breaks the button interrupt handlers
-    }
-}
-
-// no longer used
-void EXTI0_IRQHandler(void)
-{
-    if(EXTI_GetITStatus(WAKEUP_BUTTON_EXTI_LINE) != RESET)
-    {        
-        displayText("WAKEUP", 6, 0);
-        sendExperimentalMovement(MOUSEBUTTON_LEFT);
-        
-        EXTI_ClearITPendingBit(WAKEUP_BUTTON_EXTI_LINE);
-    }
-}
-
-void initializeButtons()
-{
-//    STM_EVAL_PBInit(BUTTON_TAMPER, BUTTON_MODE_EXTI);
-//    STM_EVAL_PBInit(BUTTON_WAKEUP, BUTTON_MODE_EXTI);
-    STM_EVAL_PBInit(BUTTON_TAMPER, BUTTON_MODE_GPIO);
-    STM_EVAL_PBInit(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
-    STM_EVAL_PBInit(BUTTON_KEY, BUTTON_MODE_EXTI);
-    IOE_Config();    
 }
 
 void OTG_FS_IRQHandler(void) 
@@ -546,7 +500,31 @@ void OTG_FS_IRQHandler(void)
     }
     
     return; 
-} 
+}
+
+/*  
+global variable used to make sure that we start mouse mode after a preset amount of time.
+When the timer is initialized, it apparently fires an interrupt right away, which we don't want,
+we would like to catch the second interrupt, ignoring the first. 
+*/
+uint8_t secondTick = 0;
+
+// https://visualgdb.com/w/tutorials/arm-stm32-timers/
+void TIM2_IRQHandler()
+{
+    if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
+    {
+        if (++secondTick != 2)
+            TIM_ClearITPendingBit(TIM2, TIM_IT_Update); // clear the timer interrupt one time
+        else
+        {
+            displayText("mouse mode active", 17, 0);
+            displayText("use joy and wakeup", 18, 0);
+            // the program will loop infinitely in this function
+            handleMovement();
+        }
+    }
+}
 
 int main()
 {
@@ -559,7 +537,9 @@ int main()
     shortDelay();
     usb_core_init();
     
-    nvic_init();
+    initializeTimer();	
+    
+    nvic_init();    
     
     initializeButtons();
     
