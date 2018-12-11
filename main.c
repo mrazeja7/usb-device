@@ -120,9 +120,6 @@ void sendStringDesc(uint8_t index)
     }
 }
 
-void sendMouseState();
-void handleMovement();
-
 void sendDescriptor()
 {
     char str[20];
@@ -378,7 +375,7 @@ void usb_receive()
 
 int8_t state[4]; // first byte - buttons, 2nd byte - horizontal change, 3rd byte - vertical change, 4th byte is unused
 
-void sendMouseState()
+void sendMouseData()
 {
     USB_OTG_IN_ENDPOINT1->DIEPINT |= USB_OTG_DIEPINT_TXFE;
     USB_OTG_IN_ENDPOINT1->DIEPCTL |= USB_OTG_DIEPCTL_TXFNUM_0;
@@ -388,7 +385,7 @@ void sendMouseState()
     USB_OTG_TX_DFIFO1[0] = *((uint32_t *)&state);
 }
 
-void sendExperimentalMovement(uint8_t direction)
+void sendMouseState(uint8_t direction)
 {    
     for (int i = 0; i < 4; ++i)
         state[i] = 0;
@@ -418,7 +415,7 @@ void sendExperimentalMovement(uint8_t direction)
 //            return;
     }
     
-    sendMouseState();
+    sendMouseData();
 }
 
 void handleMovement()
@@ -427,10 +424,10 @@ void handleMovement()
     {
         uint32_t rmbState = STM_EVAL_PBGetState(BUTTON_WAKEUP);
         if (rmbState)
-            sendExperimentalMovement(MOUSEBUTTON_RIGHT);
+            sendMouseState(MOUSEBUTTON_RIGHT);
         
         JOYState_TypeDef jstate = IOE_JoyStickGetState();
-        sendExperimentalMovement((uint8_t) jstate);
+        sendMouseState((uint8_t) jstate);
         
         busyDelay();
     }
