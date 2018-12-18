@@ -3,7 +3,7 @@
 #include "usb_defs.h"
 #include "inits.h"
 
-void sysclk_init()
+void sysclkInit()
 {
     GPIO_InitTypeDef GPIO_InitStructure;
 
@@ -55,7 +55,7 @@ void sysclk_init()
     GPIO_Init(GPIOC, &GPIO_InitStructure);
 }
 
-void usb_init()
+void usbInit()
 {
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_OTG_FS, ENABLE);	
@@ -76,7 +76,7 @@ void usb_init()
     GPIO_PinAFConfig(GPIOA,GPIO_PinSource12, GPIO_AF_OTG1_FS); // Data+
 }
 
-void usb_core_init() 
+void usbCoreInit() 
 {
     // 29.17.1
     // 1
@@ -109,7 +109,7 @@ void usb_core_init()
     while(!(USB_OTG_FS->GINTSTS & USB_OTG_GINTSTS_USBRST));
 }
 
-void nvic_init()
+void nvicInit()
 {
     NVIC_InitTypeDef NVIC_InitStructure;
     NVIC_InitStructure.NVIC_IRQChannel = OTG_FS_IRQn;  

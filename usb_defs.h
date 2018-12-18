@@ -8,7 +8,6 @@
 #define USB_OTG_DEVICE_ADDR (USB_OTG_FS_PERIPH_BASE + USB_OTG_DEVICE_BASE)
 #define USBD_FS							((USB_OTG_DeviceTypeDef *) USB_OTG_DEVICE_ADDR)//0x50000800
 
-
 typedef struct
 {
   __IO uint32_t GOTGCTL;              /*!< USB_OTG Control and Status Register          000h */
@@ -80,7 +79,6 @@ typedef struct
 #define USB_OTG_GAHBCFG_PTXFELVL                 USB_OTG_GAHBCFG_PTXFELVL_Msk  /*!< Periodic TxFIFO empty level */
 
 /********************  Bit definition for USB_OTG_GUSBCFG register  ********************/
-
 #define USB_OTG_GUSBCFG_TOCAL_Pos                (0U)                          
 #define USB_OTG_GUSBCFG_TOCAL_Msk                (0x7U << USB_OTG_GUSBCFG_TOCAL_Pos) /*!< 0x00000007 */
 #define USB_OTG_GUSBCFG_TOCAL                    USB_OTG_GUSBCFG_TOCAL_Msk     /*!< FS timeout calibration */
@@ -324,7 +322,6 @@ typedef struct
 #define USB_OTG_GCCFG_NOVBUSSENS                 USB_OTG_GCCFG_NOVBUSSENS_Msk  /*!< VBUS sensing disable option*/ 
 
 /********************  Bit definition for USB_OTG_DCFG register  ********************/
-
 #define USB_OTG_DCFG_DSPD_Pos                    (0U)                          
 #define USB_OTG_DCFG_DSPD_Msk                    (0x3U << USB_OTG_DCFG_DSPD_Pos) /*!< 0x00000003 */
 #define USB_OTG_DCFG_DSPD                        USB_OTG_DCFG_DSPD_Msk         /*!< Device speed */
@@ -505,7 +502,6 @@ typedef struct
 #define USB_OTG_IN_ENDPOINT1                ((USB_OTG_INEndpointTypeDef *) (USB_OTG_IN_ENDPOINT0_ADDR+0x20))
 
 /********************  Bit definition for USB_OTG_DOEPCTL register  ********************/
-
 #define USB_OTG_DOEPCTL_MPSIZ_Pos                (0U)                          
 #define USB_OTG_DOEPCTL_MPSIZ_Msk                (0x7FFU << USB_OTG_DOEPCTL_MPSIZ_Pos) /*!< 0x000007FF */
 #define USB_OTG_DOEPCTL_MPSIZ                    USB_OTG_DOEPCTL_MPSIZ_Msk     /*!< Maximum packet size */          /*!<Bit 1 */
@@ -622,7 +618,6 @@ typedef struct
 #define USB_OTG_TX0FD                            USB_OTG_TX0FD_Msk             /*!< Endpoint 0 TxFIFO depth                */
 
 /********************  Bit definition for USB_OTG_DOEPTSIZ register  ********************/
-
 #define USB_OTG_DOEPTSIZ_XFRSIZ_Pos              (0U)                          
 #define USB_OTG_DOEPTSIZ_XFRSIZ_Msk              (0x7FFFFU << USB_OTG_DOEPTSIZ_XFRSIZ_Pos) /*!< 0x0007FFFF */
 #define USB_OTG_DOEPTSIZ_XFRSIZ                  USB_OTG_DOEPTSIZ_XFRSIZ_Msk   /*!< Transfer size */
@@ -701,7 +696,6 @@ typedef struct
 #define USB_OTG_GRSTCTL_TXFFLSH_Pos              (5U)                          
 #define USB_OTG_GRSTCTL_TXFFLSH_Msk              (0x1U << USB_OTG_GRSTCTL_TXFFLSH_Pos) /*!< 0x00000020 */
 #define USB_OTG_GRSTCTL_TXFFLSH                  USB_OTG_GRSTCTL_TXFFLSH_Msk   /*!< TxFIFO flush             */
-
 
 #define USB_OTG_GRSTCTL_TXFNUM_Pos               (6U)                          
 #define USB_OTG_GRSTCTL_TXFNUM_Msk               (0x1FU << USB_OTG_GRSTCTL_TXFNUM_Pos) /*!< 0x000007C0 */

@@ -217,7 +217,7 @@ void processSetup()
         USB_OTG_OUT_ENDPOINT0->DOEPINT |= USB_OTG_DOEPINT_XFRC;
 }
 
-void receive_setup(volatile uint32_t *data)
+void receiveSetup(volatile uint32_t *data)
 {
     // https://www.beyondlogic.org/usbnutshell/usb6.shtml#SetupPacket
     uint8_t bmRequestType = (uint8_t) data[0];
@@ -332,7 +332,7 @@ void receive_setup(volatile uint32_t *data)
     // http://www.usbmadesimple.co.uk/ums_5.htm mouse input report
 }
 
-void usb_receive()
+void usbReceive()
 {
     // 29.17.6
     
@@ -363,7 +363,7 @@ void usb_receive()
         {
             for (uint16_t i = 0; i < wordcount; ++i)
                 data[i] = rxfifo[0];
-            receive_setup(data);
+            receiveSetup(data);
         }
         else 
             displayText("OTHER DATA", 10, 0);
@@ -449,7 +449,7 @@ void OTG_FS_IRQHandler(void)
     
     if (gintsts & USB_OTG_GINTSTS_RXFLVL)
     {
-        usb_receive();
+        usbReceive();
     }
     
     // page 1043
@@ -525,18 +525,18 @@ void TIM2_IRQHandler()
 
 int main()
 {
-    sysclk_init();
+    sysclkInit();
     
     LCD_Init();
     LCD_SetFont(&Font16x24); 
 
-    usb_init();
+    usbInit();
     shortDelay();
-    usb_core_init();
+    usbCoreInit();
     
     initializeTimer();	
     
-    nvic_init();    
+    nvicInit();    
     
     initializeButtons();
     
